@@ -1,0 +1,7 @@
+package-as: HopAndSeek
+
+ignore:
+  - images
+  - README.md
+  - .pkgmeta
+  - .gitignore
