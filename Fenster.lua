@@ -69,7 +69,12 @@ local function bauenStatus()
     S.symbolZeigen(self.symbol, jetzt == nil)
     self.name:SetText(jetzt and SU.Name(jetzt) or L.STATUS_NONE)
     local pause = SU:Pause("sprung")
-    if #kreis < 2 then
+    self.wechseln.text:SetText(#kreis == 1 and L.BTN_TURN_ON or L.BTN_SWITCH)
+    if #kreis == 1 then
+      local an = jetzt ~= nil
+      self.zustand:SetText(string.format(an and L.STATUS_KEEP or L.STATUS_KEEP_OFF, SU.Name(kreis[1])))
+      self.zustand:SetTextColor(rgba(an and F.erfolg or F.hinweis))
+    elseif #kreis < 2 then
       self.zustand:SetText(L.STATUS_CYCLE_EMPTY)
       self.zustand:SetTextColor(rgba(F.hinweis))
     elseif pause then

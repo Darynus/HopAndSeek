@@ -1,5 +1,9 @@
 # Hop & Seek changelog
 
+## 1.1.0 (2026-10-18)
+
+- **Only one gathering profession?** Then Hop & Seek keeps that tracking on. The game switches it off after logging in or dying, your next jump turns it back on, and a line in your chat reminds you. Switching between two tracking types still needs both professions (or two types in your cycle).
+
 ## 1.0.0 (2026-10-18)
 
 The first release. Have fun hopping!

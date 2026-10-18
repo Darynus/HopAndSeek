@@ -23,6 +23,7 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 - **No "not ready yet" spam:** switching has a short cooldown in the game. Hop & Seek waits 1, 2 or 3 seconds between switches and never tries while the cooldown runs.
 - **Pick your hop:** every jump, double jump (tap jump twice quickly) or only while mounted or in travel form.
 - **Your cycle:** Find Herbs and Find Minerals by default. Dwarves can add Find Treasure, hunters their tracks, druids, paladins and warlocks their senses. Hop & Seek only uses what your character knows.
+- **Only one gathering profession?** Then Hop & Seek keeps that tracking on. The game switches it off after logging in or dying, your next jump turns it back on, and a line in your chat reminds you.
 
 ![Always know what you track](images/hopandseek-2-symbol.png)
 

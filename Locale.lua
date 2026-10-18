@@ -36,7 +36,9 @@ L.TAB_HELP = "Help"
 L.STATUS_NOW = "Tracking now"
 L.STATUS_NONE = "No tracking active"
 L.STATUS_CYCLE = "Your cycle"
-L.STATUS_CYCLE_EMPTY = "Your character knows fewer than two of the tracking types in your cycle. Learn Herbalism and Mining, or pick more types in Settings."
+L.STATUS_CYCLE_EMPTY = "Your character knows none of the tracking types in your cycle. Learn Herbalism or Mining, or pick other types in Settings."
+L.STATUS_KEEP = "Only %s is known, so Hop & Seek keeps it on. When it goes off (after logging in or dying), your next jump turns it back on."
+L.STATUS_KEEP_OFF = "%s is off: jump once to turn it on."
 L.STATUS_NEXT = "Next jump: %s"
 L.STATUS_DOUBLE = "Next double jump: %s"
 L.STATUS_MOUNTED = "Next jump while mounted: %s"
@@ -50,6 +52,7 @@ L.STATUS_GCD_TIP = "Switching costs a global cooldown in this game. Double jump 
 L.STATUS_BOTH = "Your game can track several types at once. Hop & Seek switched them all on, no need to jump."
 L.STATUS_BLOCKED = "The game blocked switching from an add-on (%s). Hop & Seek stays off. Please tell us in the comments."
 L.BTN_SWITCH = "Switch now"
+L.BTN_TURN_ON = "Turn on"
 L.BTN_SWITCH_HELP = "Switches to the next tracking type in your cycle. One click, one switch."
 
 -- Gründe für die Pause
@@ -103,11 +106,15 @@ L.ICON_TOOLTIP_HELP = "Click: switch now\nRight-click: open Hop & Seek\nDrag: mo
 L.MSG_SWITCHED = "Tracking: %s"
 L.MSG_BOTH = "Your game tracks several types at once. All tracking types in your cycle are on now."
 L.MSG_BLOCKED = "The game blocked switching from an add-on. Hop & Seek is off for now."
-L.MSG_NOTHING = "Nothing to switch: your character knows fewer than two tracking types from your cycle."
+L.MSG_NOTHING = "Nothing to track: your character knows none of the tracking types in your cycle."
+L.MSG_KEPT_ON = "%s is on again."
+L.MSG_ALREADY_ON = "%s is already on."
+L.MSG_REMIND = "%s is off. Jump once and Hop & Seek turns it back on."
+L.ICON_KEPT_ON = "Kept on by Hop & Seek"
 
 -- Hilfe
 L.HELP_TITLE = "How it works"
-L.HELP_TEXT = "Hop & Seek switches your minimap tracking when you jump: Find Herbs, then Find Minerals, then Find Herbs again. Each press of the jump key switches once, nothing happens on its own.\n\nIt pauses in combat, while swimming or flying, in dungeons and raids, while casting and, if you like, in cities and inns.\n\nIf a switch costs a global cooldown in your game, pick Double jump in Settings: then a normal jump stays a normal jump."
+L.HELP_TEXT = "Hop & Seek switches your minimap tracking when you jump: Find Herbs, then Find Minerals, then Find Herbs again. Each press of the jump key switches once, nothing happens on its own.\n\nOnly one gathering profession? Then Hop & Seek keeps that tracking on: when it goes off after logging in or dying, your next jump turns it back on.\n\nIt pauses in combat, while swimming or flying, in dungeons and raids, while casting and, if you like, in cities and inns.\n\nIf a switch costs a global cooldown in your game, pick Double jump in Settings: then a normal jump stays a normal jump."
 L.HELP_COMMANDS = "Commands"
 
 -- Befehle

@@ -20,7 +20,11 @@ local function tooltip(f)
   local jetzt, naechste, kreis = SU:Vorschau()
   GameTooltip:SetText(jetzt and SU.Name(jetzt) or L.STATUS_NONE, 1, 0.82, 0)
   local pause = SU:Pause("sprung")
-  if pause then
+  if #kreis == 1 then
+    local an = jetzt ~= nil
+    local c = an and F.erfolg or F.hinweis
+    GameTooltip:AddLine(an and L.ICON_KEPT_ON or string.format(L.STATUS_KEEP_OFF, SU.Name(kreis[1])), c[1], c[2], c[3], true)
+  elseif pause then
     GameTooltip:AddLine(string.format(L.STATUS_PAUSED, pause), F.hinweis[1], F.hinweis[2], F.hinweis[3])
   elseif naechste and #kreis >= 2 then
     local vorlage = ({ doppel = L.STATUS_DOUBLE, reiten = L.STATUS_MOUNTED })[ns.db.ausloeser] or L.STATUS_NEXT

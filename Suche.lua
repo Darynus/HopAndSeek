@@ -1,4 +1,7 @@
 -- Suche: liest die Minikarten-Suchen des Chars und wechselt beim Springen zur nächsten im Kreis.
+-- Kennt der Char aus dem Kreis nur eine Suche (etwa nur Kräuterkunde), hält Hop & Seek diese an:
+-- Ist sie aus (nach dem Einloggen, nach dem Tod), schaltet der nächste Sprung sie wieder ein
+-- (Patrick, 18. Okt). Auch das nur im Tastendruck des Spielers, nie von selbst.
 -- Der Sprung des Spiels läuft über JumpOrAscendStart (Taste "Springen"). hooksecurefunc hängt sich
 -- dahinter, ohne den Sprung zu verändern. Der Wechsel läuft also immer in einem echten Tastendruck
 -- des Spielers, ein Druck ist höchstens ein Wechsel. Gewechselt wird über die Minikarten-Suche des
@@ -193,12 +196,41 @@ local function nachsehen(von, nach, gcdVorher)
   ns.aktualisieren()
 end
 
--- Ein Wechsel zur nächsten Suche. quelle: "sprung" oder "klick". Rückgabe: true, wenn gewechselt
+-- Nur eine Suche im Kreis: wieder einschalten, wenn sie aus ist. Pausiert nur, wenn es wirklich
+-- nicht geht (aus, gesperrt, Kampf, tot, Flugroute), Stadt oder Reittier spielen hier keine Rolle.
+function SU:Einschalten(id, quelle)
+  local db = ns.db
+  if quelle ~= "klick" and not db.an then return false end
+  if self:Pause("klick") then return false end
+  local e = self.liste[id]
+  if e.aktiv then
+    if quelle == "klick" then ns.melde(string.format(L.MSG_ALREADY_ON, SU.Name(id))) end
+    return false
+  end
+  if rest(id) > 0 or rest(GCD) > 0 then return false end
+  if not setzen(e.nr, true) then return false end
+  self.zuletzt = { zeit = ns.jetzt(), nach = id }
+  if db.ton and PlaySound and SOUNDKIT then
+    pcall(PlaySound, SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856)
+  end
+  ns.melde(string.format(L.MSG_KEPT_ON, SU.Name(id)))
+  if C_Timer and C_Timer.After then
+    C_Timer.After(0.25, function()
+      SU:Lesen()
+      ns.aktualisieren()
+    end)
+  end
+  return true
+end
+
+-- Ein Wechsel zur nächsten Suche. quelle: "sprung" oder "klick". Rückgabe: true, wenn gewechselt.
+-- Mit nur einer Suche im Kreis: einschalten, wenn sie aus ist.
 function SU:Wechseln(quelle)
   if not ns.db then return false end
   self:Lesen()
-  if self:Pause(quelle) then return false end
   local kreis = self:Kreis()
+  if #kreis == 1 then return self:Einschalten(kreis[1], quelle) end
+  if self:Pause(quelle) then return false end
   if #kreis < 2 then
     if quelle == "klick" then ns.melde(L.MSG_NOTHING) end
     return false
@@ -234,6 +266,12 @@ function SU:Sprung()
   local db = ns.db
   if not (db and db.an) then return end
   local t = ns.jetzt()
+  -- Nur eine Suche: jeder Sprung darf sie wieder einschalten, Doppelsprung und Reittier zählen nicht
+  if #self:Kreis() == 1 then
+    if t - letzterWechsel < 1 then return end
+    if self:Wechseln("sprung") then letzterWechsel = t end
+    return
+  end
   if db.ausloeser == "doppel" then
     if t - letzterSprung > DOPPEL then
       letzterSprung = t
@@ -250,6 +288,26 @@ function SU:Vorschau()
   local kreis = self:Kreis()
   return self:Aktuell(kreis), self:Naechste(kreis), kreis
 end
+
+-- Nach dem Einloggen und nach der Wiederbelebung einmal im Chat erinnern, wenn die einzige Suche
+-- aus ist: Ein Sprung schaltet sie ein. Höchstens alle 60 Sekunden.
+local erinnert = -100
+function SU:Erinnern()
+  if not (ns.db and ns.db.an) then return end
+  self:Lesen()
+  local kreis = self:Kreis()
+  if #kreis ~= 1 or self.liste[kreis[1]].aktiv then return end
+  local t = ns.jetzt()
+  if t - erinnert < 60 then return end
+  erinnert = t
+  ns.melde(string.format(L.MSG_REMIND, SU.Name(kreis[1])))
+end
+local function spaeterErinnern()
+  if C_Timer and C_Timer.After then C_Timer.After(4, function() SU:Erinnern() end) else SU:Erinnern() end
+end
+ns.Ereignis("PLAYER_ENTERING_WORLD", function(erstesMal) if erstesMal then spaeterErinnern() end end)
+ns.Ereignis("PLAYER_UNGHOST", spaeterErinnern)
+ns.Ereignis("PLAYER_ALIVE", spaeterErinnern)
 
 local gemeldet = false
 ns.beimStart(function()

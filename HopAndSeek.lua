@@ -9,7 +9,7 @@ local L = ns.L
 
 ns.FARBE = "|cff80d65a"
 ns.TITEL = ns.FARBE .. L.TITLE_PART1 .. "|r " .. L.TITLE_PART2
-ns.VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(ADDON, "Version")) or "1.0.0"
+ns.VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(ADDON, "Version")) or "1.1.0"
 
 function ns.melde(text)
   DEFAULT_CHAT_FRAME:AddMessage(ns.FARBE .. L.ADDON_NAME .. ":|r " .. tostring(text))
