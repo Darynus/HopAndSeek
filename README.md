@@ -6,7 +6,7 @@
 One switch per jump, nothing happens on its own.</p>
 
 <p align="center">
-<a href="https://www.curseforge.com/wow/addons/hop-and-seek">CurseForge</a> ·
+<a href="https://www.curseforge.com/wow/addons/hop-seek-forever">CurseForge</a> ·
 <a href="CHANGELOG.md">Changelog</a> ·
 <a href="https://github.com/Darynus/HopAndSeek/issues">Report a bug</a>
 </p>
