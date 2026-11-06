@@ -44,7 +44,7 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 ## Install
 
 - **CurseForge app**: search for *Hop & Seek* under World of Warcraft, Forever.
-- **By hand**: download the zip from CurseForge and put the `HopAndSeek` folder into `World of Warcraft\_classic_beta_\Interface\AddOns`. Restart the game.
+- **By hand**: download the zip from CurseForge and put the `HopAndSeek` folder into `World of Warcraft\_forever_\Interface\AddOns`. Restart the game.
 
 ## Commands
 
