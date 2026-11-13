@@ -57,6 +57,7 @@ local STANDARD = {
   erfolgTon = true,     -- mit einem Ton des Spiels
   erfolge = {},         -- Rang, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Felder in Erfolge.lua)
   knotenKarte = {},     -- [Karten-ID] = { { x, y, art, n, inhalt, zuletzt } }
+  route = false,        -- Wegweiser nach jedem Knoten von selbst (Wegweiser.lua), ersetzt den Quest-Pfeil
   berufGemeldet = {},   -- ["Name-Realm"] = { [Fertigkeitslinie] = Stufe, zu der gemeldet wurde }
   freunde = {},         -- geteilte Journale der Gruppe (Teilen.lua)
   sitzungen = {},       -- ["Name-Realm"] = laufende Sitzung des Sammelzählers (je Char)

@@ -35,6 +35,17 @@ for _, id in ipairs({
   439778, 439815, 562111, 566779, 656332, 656333,
 }) do Li.OBJEKTE[id] = "erz" end
 
+-- 1.2.2: gelernte Objekte von vor dem Kisten-Fix vergessen (eine Kiste mit Erz galt als Ader,
+-- Patrick, 13. Nov). Echte Knoten lernt Hop & Seek beim nächsten Sammeln wieder.
+ns.beimStart(function()
+  if ns.db and not ns.db.objekteGeprueft then
+    for id in pairs(ns.db.knotenObjekte or {}) do
+      if not Li.OBJEKTE[id] then ns.db.knotenObjekte[id] = nil end
+    end
+    ns.db.objekteGeprueft = true
+  end
+end)
+
 -- Einstellungen der Zielhilfe: immer an (auch mit Maus und Tastatur), Plakette über dem Objekt,
 -- rundherum suchen, etwas weiter (nie kürzer machen, als es war), das Symbol des Spiels darüber
 local CVARS = {

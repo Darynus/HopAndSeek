@@ -197,6 +197,8 @@ L.BAR_TODAY = "Today %d/%d"
 L.SESSION_SUMMARY = "Session over: %s."
 L.SESSION_BEST = "Best find: %s."
 L.GATHER_SPOTS_KNOWN = "%d spots known"
+L.SET_ROUTE = "Route while gathering"
+L.SET_ROUTE_HELP = "After every herb or ore node you gather, the game's marker moves on to the nearest spot you know. No click needed: just gather and follow it. Your own map pin stays untouched. While it guides you, the game shows this marker instead of the one for your quest. Right-click the pin in the gathering window to stop."
 L.MAP_NODE_HERB = "Herb"
 L.MAP_NODE_ORE = "Ore"
 L.SKILL_HERBALISM = "Herbalism"
@@ -204,7 +206,7 @@ L.SKILL_MINING = "Mining"
 L.SKILL_SKINNING = "Skinning"
 L.SKILL_LEVEL = "%s %d/%d"
 L.SKILL_CAPPED_TITLE = "Time to train"
-L.SKILL_CAPPED_HELP = "You reached the limit. Visit a trainer to learn up to %d."
+L.SKILL_CAPPED_HELP = "You reached the limit. Visit a trainer to learn up to %d. /hop trainer shows the way."
 L.SKILL_CAPPED_SHORT = "%s %d/%d: visit a trainer"
 L.SKILL_CAPPED_LEVEL = "%s %d/%d: next rank at level %d"
 L.SKILL_SOON = "%s %d/%d: visit a trainer soon"
@@ -281,11 +283,22 @@ L.CMD_RESET = "start a new gathering session"
 L.CMD_JOURNAL = "open the journal: rank, daily goal, records, badges, field guide"
 L.CMD_SHARE = "share your journal with your group"
 L.CMD_PILLAR = "switch the light pillar on or off, or pick its look"
+L.CMD_TRAINER = "show the way to the nearest trainer for herbalism, mining or skinning"
+L.TRAINER_SET = "Nearest %s trainer: %s, %d yards away. Follow the marker."
+L.TRAINER_NONE = "No %s trainer known on this continent for your faction."
+L.TRAINER_NO_PROFESSION = "No gathering profession to train. Try /hop trainer herbalism, mining or skinning."
+L.TRAINER_BUTTON = "Nearest trainer"
+L.TRAINER_WINDOW_HELP = "The game's marker shows the way to the nearest trainer of your faction on this continent. Trainers also teach the profession if you have not learned it yet."
+L.STATUS_PROFESSIONS = "Gathering professions"
+L.STATUS_TRAIN_NOW = "visit a trainer"
+L.STATUS_TRAIN_LEVEL = "next rank at level %d"
+L.STATUS_NOT_LEARNED = "%s: not learned"
+L.TRAINER_BUTTON_HELP = "Click: the game's marker shows the way to the nearest trainer for this profession."
 L.CMD_NEXT = "guide you to the nearest herb or ore vein you gathered before, stop ends the guide"
 
 -- Wegweiser zur nächsten bekannten Stelle (Wegweiser.lua)
 L.NEXT_BUTTON = "Next spot"
-L.NEXT_BUTTON_HELP = "Left-click: the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot. Right-click: guide off.\n\nAlso /hop next, or a key under Esc > Options > Keybindings > AddOns."
+L.NEXT_BUTTON_HELP = "Left-click: the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot. Right-click: guide off, this also stops the route.\n\nAlso /hop next, or a key under Esc > Options > Keybindings > AddOns. With Route while gathering (Gathered tab) it starts by itself."
 L.NEXT_WINDOW_HELP = "The game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot. Hop & Seek remembers every node you gather. /hop next stop ends the guide."
 L.NEXT_SPOT = "Next spot: %s, %d yards away. Follow the marker."
 L.NEXT_SPOT_NO_DISTANCE = "Next spot: %s. Follow the marker."
@@ -337,6 +350,11 @@ L.NEWS_AGAIN = "Show this after updates"
 L.NEWS_AGAIN_HELP = "A short window once after Hop & Seek was updated. /hop news shows it again."
 L.NEWS_OK = "Got it"
 L.NEWS = {
+  { version = "1.2.2", zeilen = {
+    "Nearest trainer: click the trainer hint in the gathering window, use the buttons in the Status tab or type /hop trainer, and the game's marker shows the way to the nearest Herbalism, Mining or Skinning trainer of your faction.",
+    "Route while gathering (Gathered tab): after every node the marker moves on to the next spot by itself, no click needed.",
+    "Fix: loot from chests no longer counts as gathering. Only herb and ore nodes count, and only for the professions your character has.",
+  } },
   { version = "1.2.1", zeilen = {
     "Next spot: click the pin in the gathering window, type /hop next or press your key, and the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot.",
     "Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count. Right-click the pin to end the guide.",

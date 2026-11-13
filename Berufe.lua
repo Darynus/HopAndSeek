@@ -122,20 +122,21 @@ function B:Pruefen()
   if neu then ns.aktualisieren() end
 end
 
--- Hinweis für das Sammelfenster: Text und ob es dringend ist (am Limit), sonst nil.
+-- Hinweis für das Sammelfenster: Text, ob es dringend ist (am Limit) und die Art des Berufs (für den
+-- Lehrer-Finder), sonst nil.
 -- Am Limit: zum Lehrer, oder ab welchem Level es weitergeht. Kurz davor: bald zum Lehrer.
 function B.Warnung()
-  local bald
+  local bald, baldArt
   for _, p in ipairs(B.Liste()) do
     if B.AmLimit(p) then
-      if B.Bereit(p) then return string.format(L.SKILL_CAPPED_SHORT, B.Name(p), p.rang, p.max), true end
+      if B.Bereit(p) then return string.format(L.SKILL_CAPPED_SHORT, B.Name(p), p.rang, p.max), true, p.art end
       local _, level = B.Naechste(p)
-      return string.format(L.SKILL_CAPPED_LEVEL, B.Name(p), p.rang, p.max, level), true
+      return string.format(L.SKILL_CAPPED_LEVEL, B.Name(p), p.rang, p.max, level), true, p.art
     elseif p.max < B.ENDE and p.rang >= p.max - B.BALD and B.Bereit(p) and not bald then
-      bald = string.format(L.SKILL_SOON, B.Name(p), p.rang, p.max)
+      bald, baldArt = string.format(L.SKILL_SOON, B.Name(p), p.rang, p.max), p.art
     end
   end
-  if bald then return bald, false end
+  if bald then return bald, false, baldArt end
 end
 
 ns.Ereignis("SKILL_LINES_CHANGED", function() B.Vergessen() B:Pruefen() end)

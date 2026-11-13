@@ -93,33 +93,37 @@ function W.Name(e)
   return name or (e.art == "kraut" and L.MAP_NODE_HERB or L.MAP_NODE_ORE)
 end
 
--- Wegpunkt des Spiels setzen und verfolgen lassen (Markierung mit Entfernung auf dem Bildschirm)
-function W:Setzen(z)
+-- Wegpunkt des Spiels setzen und verfolgen lassen (Markierung mit Entfernung auf dem Bildschirm).
+-- Auch für den Lehrer-Finder (Lehrer.lua).
+function W.Wegpunkt(karte, x, y)
   if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then
     ns.melde(L.NEXT_UNSUPPORTED)
     return false
   end
   if C_Map.CanSetUserWaypointOnMap then
-    local ok, kann = pcall(C_Map.CanSetUserWaypointOnMap, z.karte)
+    local ok, kann = pcall(C_Map.CanSetUserWaypointOnMap, karte)
     if ok and kann == false then
       ns.melde(L.NEXT_UNSUPPORTED)
       return false
     end
   end
-  local okP, punkt = pcall(UiMapPoint.CreateFromCoordinates, z.karte, z.e.x, z.e.y)
-  if not okP or not punkt then
-    ns.melde(L.NEXT_UNSUPPORTED)
-    return false
-  end
-  -- Vorher merken: das Spiel meldet USER_WAYPOINT_UPDATED womöglich sofort
-  local altZiel, altPunkt = self.ziel, self.punkt
-  self.ziel, self.punkt = z.e, { karte = z.karte, x = z.e.x, y = z.e.y }
-  if not pcall(C_Map.SetUserWaypoint, punkt) then
-    self.ziel, self.punkt = altZiel, altPunkt
+  local okP, punkt = pcall(UiMapPoint.CreateFromCoordinates, karte, x, y)
+  if not okP or not punkt or not pcall(C_Map.SetUserWaypoint, punkt) then
     ns.melde(L.NEXT_UNSUPPORTED)
     return false
   end
   if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then pcall(C_SuperTrack.SetSuperTrackedUserWaypoint, true) end
+  return true
+end
+
+function W:Setzen(z)
+  -- Vorher merken: das Spiel meldet USER_WAYPOINT_UPDATED womöglich sofort
+  local altZiel, altPunkt = self.ziel, self.punkt
+  self.ziel, self.punkt = z.e, { karte = z.karte, x = z.e.x, y = z.e.y }
+  if not W.Wegpunkt(z.karte, z.e.x, z.e.y) then
+    self.ziel, self.punkt = altZiel, altPunkt
+    return false
+  end
   return true
 end
 
@@ -147,14 +151,16 @@ function W:Weiter()
   return true
 end
 
--- Rechtsklick oder /hop next stop: Wegweiser aus. Den Wegpunkt nimmt es nur weg, wenn es noch der
--- von Hop & Seek ist.
+-- Rechtsklick, Taste rechts oder /hop next stop: Wegweiser aus, und die Route auch (sonst ginge es
+-- mit dem nächsten Knoten gleich weiter). Den Wegpunkt nimmt es nur weg, wenn es noch der von
+-- Hop & Seek ist. still: von innen (Lehrer-Finder, letzte Stelle), ohne Meldung, die Route bleibt.
 function W:Aus(still)
   if istUnserer(self) then
     if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then pcall(C_SuperTrack.SetSuperTrackedUserWaypoint, false) end
     if C_Map and C_Map.ClearUserWaypoint then pcall(C_Map.ClearUserWaypoint) end
   end
-  local lief = self.ziel ~= nil
+  local lief = self.ziel ~= nil or (not still and ns.db.route)
+  if not still then ns.db.route = false end
   self.ziel, self.punkt, self.erreicht, self.uebersprungen = nil, nil, nil, {}
   if not still and lief then ns.melde(L.NEXT_OFF) end
   ns.aktualisieren()
@@ -162,10 +168,14 @@ end
 
 function W.Laeuft() return W.ziel ~= nil end
 
--- Gesammelt: an der Zielstelle (oder ganz nah daran) geht es nach dem Plündern weiter. Die Stelle
--- dieses Knotens kennt die Sammelkarte schon (ihr Haken läuft vorher).
+-- Gesammelt: an der Zielstelle (oder ganz nah daran) geht es nach dem Plündern weiter. Mit der Route
+-- (Haken im Reiter Gathered; Patrick, 13. Nov: „soll ja ein Quality of Life Add-on sein“, nicht übers
+-- Menü) nach jedem Kraut und Erz, auch ohne Klick vorher. Die Stelle dieses Knotens kennt die
+-- Sammelkarte schon (ihr Haken läuft vorher).
 ns.beimSammeln(function(_, _, _, knotenArt)
-  if not W.ziel or not (knotenArt == "kraut" or knotenArt == "erz") then return end
+  if not (knotenArt == "kraut" or knotenArt == "erz") then return end
+  W.gesammelt = true
+  if not W.ziel then return end
   local K = ns.SammelKarte
   if K.aktuell == W.ziel then
     W.erreicht = true
@@ -175,18 +185,33 @@ ns.beimSammeln(function(_, _, _, knotenArt)
   if karte and W.punkt and karte == W.punkt.karte and nah(karte, x, y, W.punkt.x, W.punkt.y) then W.erreicht = true end
 end)
 
+-- Hat der Spieler einen eigenen Wegpunkt (oder den zum Lehrer)? Den ersetzt die Route nie.
+local function fremderWegpunkt()
+  if not (C_Map and C_Map.GetUserWaypoint) then return false end
+  local ok, wp = pcall(C_Map.GetUserWaypoint)
+  return ok and wp ~= nil and not istUnserer(W)
+end
+
 ns.Ereignis("LOOT_CLOSED", function()
-  if not W.erreicht then return end
-  W.erreicht = nil
-  if not istUnserer(W) then
-    W.ziel, W.punkt = nil, nil
+  local gesammelt, erreicht = W.gesammelt, W.erreicht
+  W.gesammelt, W.erreicht = nil, nil
+  if not gesammelt then return end
+  if W.ziel then
+    if not istUnserer(W) then
+      W.ziel, W.punkt = nil, nil
+      return
+    end
+    -- Ohne Route erst an der Zielstelle weiter, mit Route nach jedem Knoten von hier aus
+    if not (erreicht or ns.db.route) then return end
+  elseif not ns.db.route or fremderWegpunkt() then
     return
   end
+  local lief = W.ziel ~= nil
   W.uebersprungen = {}
   local z = W:Suchen()
   if z and W:Setzen(z) then
     ns.aktualisieren()
-  else
+  elseif lief then
     W:Aus(true)
     ns.melde(L.NEXT_LAST)
   end

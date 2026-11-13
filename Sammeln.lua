@@ -4,7 +4,9 @@
 -- Erkannt wird an der Beute, nie an Namen:
 --   - Knoten: Quelle ist ein Objekt der Welt (GUID "GameObject-..."), im Fenster liegt ein Kraut
 --     (Handelswaren 7/9) oder Metall und Stein (7/7). Dann zählt alles an Handelswaren aus diesem
---     Objekt mit, zum Beispiel Edelsteine aus einer Erzader.
+--     Objekt mit, zum Beispiel Edelsteine aus einer Erzader. Kisten zählen nicht: Ein Objekt, das kein
+--     bekanntes Kraut und keine bekannte Ader ist, zählt nur mit dem Beruf dazu und ohne Geld oder
+--     anderes in der Beute (Patrick, 13. Nov: eine Kiste mit Zinnerz, Char ohne Sammelberuf).
 --   - Kürschnern: Quelle ist eine Kreatur, im Fenster liegt Leder (7/6), dazu kein Geld und nichts
 --     außer Handelswaren (normale Beute von Gegnern bringt fast immer Geld oder anderes mit), oder
 --     der Char hat gerade gekürschnert (Zauber-ID).
@@ -194,12 +196,23 @@ local function lesen()
       end
     end
   end
+  -- Kiste oder Knoten? Ein bekanntes Kraut oder eine bekannte Ader (Objekt-IDs in Lichtsaeule.lua)
+  -- zählt immer. Jedes andere Objekt nur, wenn der Char den Beruf dazu hat und die Beute wie aus
+  -- einem Knoten aussieht: kein Geld, nur Handelswaren. Kisten bringen fast immer Geld oder anderes
+  -- mit. Beim Kürschnern genauso: Ohne den Beruf ist Leder nur Beute.
+  local function kann(art) return not ns.Berufe or ns.Berufe.Hat(art) end
+  local function knoten(art)
+    if not sorten["objekt-" .. art] then return false end
+    local bekannt = Z.objekt and ns.Lichtsaeule and ns.Lichtsaeule.OBJEKTE[Z.objekt]
+    if bekannt then return bekannt == art end
+    return not geld and not fremd and kann(art)
+  end
   -- Kraut hat Vorrang: Kräuter wachsen nicht in Erzadern, Steine liegen aber auch mal dabei
-  if sorten["objekt-kraut"] then
+  if knoten("kraut") then
     Z.knoten = "kraut"
-  elseif sorten["objekt-erz"] then
+  elseif knoten("erz") then
     Z.knoten = "erz"
-  elseif sorten["kreatur-leder"] and (geradeGekuerschnert() or (not geld and not fremd)) then
+  elseif sorten["kreatur-leder"] and (geradeGekuerschnert() or (not geld and not fremd and kann("leder"))) then
     Z.knoten = "leder"
   end
   if not Z.knoten then return end
@@ -377,6 +390,30 @@ ns.Ereignis("LOOT_CLOSED", function() Z.beute, Z.knoten, Z.gezaehlt, Z.offen = {
 ns.Ereignis("UNIT_SPELLCAST_SUCCEEDED", function(einheit, _, zauber)
   if einheit == "player" and KUERSCHNERN[zauber] then Z.gekuerschnert = ns.jetzt() end
 end)
+-- 1.2.2: Sitzungen, die eine Kiste gestartet hat (Patrick, 13. Nov: Ignis, Hexenmeister ohne
+-- Sammelberuf, hatte nach einer Kiste mit Zinnerz eine Sitzung). Einmal je Char, ein paar Sekunden
+-- nach dem Einloggen (vorher nennt Forever die Berufe nicht): Ohne Sammelberuf ist die Sitzung weg,
+-- ohne Bilanz im Chat.
+local function kistenSitzungWeg()
+  if not (ns.db and ns.Berufe) then return end
+  local k = Z.Char()
+  ns.db.sitzungGeprueft = ns.db.sitzungGeprueft or {}
+  if ns.db.sitzungGeprueft[k] then return end
+  ns.db.sitzungGeprueft[k] = true
+  local B = ns.Berufe
+  B.Vergessen()
+  if B.Hat("kraut") or B.Hat("erz") or B.Hat("leder") then return end
+  local s = ns.db.sitzungen[k]
+  if s and s.start then
+    ns.db.sitzungen[k] = nil
+    Z:Sitzung()
+    ns.aktualisieren()
+  end
+end
+ns.beimStart(function()
+  if C_Timer and C_Timer.After then C_Timer.After(8, kistenSitzungWeg) end
+end)
+
 ns.beimStart(function()
   -- Bis 1.2.0 gab es eine Sitzung für den ganzen Account: weg damit, sie gehörte keinem Char
   ns.db.sitzung, ns.db.letzteSitzung = nil, nil

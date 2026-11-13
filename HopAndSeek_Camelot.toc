@@ -2,7 +2,7 @@
 ## Title: |cff80d65aHop|r & Seek
 ## Notes: Jump to switch your minimap tracking between Find Herbs and Find Minerals. One switch per jump, nothing happens on its own. /hop
 ## Author: Darynus
-## Version: 1.2.1
+## Version: 1.2.2
 ## IconTexture: Interface\AddOns\HopAndSeek\Media\Icon
 ## AddonCompartmentFunc: HopAndSeek_OnAddonCompartmentClick
 ## OptionalDeps: Auctionator, Midas
@@ -19,6 +19,7 @@ Berufe.lua
 Teilen.lua
 SammelKarte.lua
 Wegweiser.lua
+Lehrer.lua
 Lichtsaeule.lua
 Anzeige.lua
 SammelLeiste.lua

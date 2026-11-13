@@ -140,6 +140,15 @@ function G:Bauen()
   f.beruf:SetJustifyH("LEFT")
   f.beruf:SetWordWrap(false)
   f.beruf:Hide()
+  -- Klick auf den Hinweis: Wegpunkt zum nächsten Lehrer (Lehrer.lua)
+  f.lehrer = CreateFrame("Button", nil, f)
+  f.lehrer:SetAllPoints(f.beruf)
+  f.lehrer:SetScript("OnClick", function()
+    S.klick()
+    ns.Lehrer:Zeigen(f.berufArt)
+  end)
+  S.tooltip(f.lehrer, L.TRAINER_BUTTON, L.TRAINER_BUTTON_HELP)
+  f.lehrer:Hide()
 
   -- Die wertvollsten Funde (oder die häufigsten, ohne Preise)
   for i = 1, MAX_FUNDE do
@@ -235,9 +244,11 @@ function G:Aktualisieren()
   -- Infozeile ein- oder zweizeilig. Braucht ein Beruf den Lehrer, steht das darunter (dringend in
   -- Gelb, bald in Grau), die Funde rücken nach unten.
   local info = math.min(2 * 12 + 2, math.max(INFO, (f.info:GetStringHeight() or 12) + 4))
-  local warnung, dringend
-  if ns.Berufe then warnung, dringend = ns.Berufe.Warnung() end
+  local warnung, dringend, berufArt
+  if ns.Berufe then warnung, dringend, berufArt = ns.Berufe.Warnung() end
   f.beruf:SetShown(warnung ~= nil)
+  f.lehrer:SetShown(warnung ~= nil)
+  f.berufArt = berufArt
   f.beruf:SetText(warnung or "")
   f.beruf:SetTextColor(rgba(dringend and F.hinweis or F.leise))
   f.beruf:ClearAllPoints()

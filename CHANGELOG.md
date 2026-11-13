@@ -1,5 +1,11 @@
 # Hop & Seek changelog
 
+## 1.2.2 (2026-11-13)
+
+- **Nearest trainer**: click the trainer hint in the gathering window, use the new Gathering professions section in the Status tab or type `/hop trainer` (or `/hop trainer herbalism`, `mining`, `skinning`), and the game's own marker shows the way to the nearest trainer of your faction on this continent, with the distance. The reminder at the limit of your rank tells you about it.
+- **Route while gathering**: tick it in the Gathered tab, and after every herb or ore node you gather the game's marker moves on to the nearest spot you know, without a click. Your own map pin stays untouched. Right-click the pin in the gathering window to stop.
+- **Fix**: loot from chests and other objects no longer counts as gathering. Herb and ore nodes always count, any other object only for a profession your character has and without coins or other items in the loot. Leather from a creature counts as skinning only if your character can skin. A session that a chest started on a character without a gathering profession is cleared once after you log in.
+
 ## 1.2.1 (2026-11-13)
 
 - **Next spot**: the pin in the gathering window, `/hop next` or a key binding sets the game's own marker on the nearest herb or ore vein you gathered before, with the distance on your screen. Gather there, and the marker moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count. Right-click the pin or `/hop next stop` ends the guide, your own map pin stays untouched once you set a new one.

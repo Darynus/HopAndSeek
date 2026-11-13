@@ -64,6 +64,24 @@ local function bauenStatus()
   f.pruefung = S.absatz(f, B, F.leise, "GameFontHighlightSmall")
   f.pruefung:SetPoint("TOPLEFT", 0, -190)
 
+  -- Sammelberufe mit Stufe und je ein Knopf zum nächsten Lehrer (Lehrer.lua; Patrick, 13. Nov:
+  -- „müsste man in dem Tab irgendwo auch mit drin haben, mit den Lehrern“). Auch für Berufe, die der
+  -- Char noch nicht hat: Die Lehrer bringen ihn auch bei.
+  S.ueberschrift(f, L.STATUS_PROFESSIONS):SetPoint("TOPLEFT", 0, -292)
+  f.berufe = {}
+  for i, art in ipairs({ "kraut", "erz", "leder" }) do
+    local z = CreateFrame("Frame", nil, f)
+    z:SetSize(B, 22)
+    z:SetPoint("TOPLEFT", 0, -312 - (i - 1) * 25)
+    z.text = S.schrift(z, "GameFontHighlight", F.text)
+    z.text:SetPoint("LEFT", 0, 0)
+    z.knopf = S.textKnopf(z, L.TRAINER_BUTTON, 130, function() ns.Lehrer:Zeigen(art) end)
+    z.knopf:SetPoint("RIGHT", 0, 0)
+    S.tooltip(z.knopf, L.TRAINER_BUTTON, L.TRAINER_WINDOW_HELP)
+    z.art = art
+    f.berufe[i] = z
+  end
+
   function f:Aktualisieren()
     local jetzt, naechste, kreis = SU:Vorschau()
     if jetzt then self.icon:SetTexture(SU.Icon(jetzt)) end
@@ -100,6 +118,27 @@ local function bauenStatus()
     if p.mehrere then table.insert(t, "|cff66d68f" .. L.STATUS_BOTH .. "|r") end
     if p.gesperrt then table.insert(t, "|cfff06059" .. string.format(L.STATUS_BLOCKED, p.gesperrt) .. "|r") end
     self.pruefung:SetText(table.concat(t, "\n"))
+    -- Sammelberufe: Stufe, am Limit der Hinweis, sonst „not learned“
+    local BE = ns.Berufe
+    local nachArt = {}
+    for _, b in ipairs(BE and BE.Liste() or {}) do nachArt[b.art] = b end
+    for _, z in ipairs(self.berufe) do
+      local b = nachArt[z.art]
+      local name = ns.Lehrer.Name(z.art)
+      if b then
+        local text = string.format(L.SKILL_LEVEL, name, b.rang, b.max)
+        if BE.AmLimit(b) then
+          local _, level = BE.Naechste(b)
+          text = text .. "  " .. (BE.Bereit(b) and ("|cffffd100" .. L.STATUS_TRAIN_NOW .. "|r")
+            or ("|cff999999" .. string.format(L.STATUS_TRAIN_LEVEL, level) .. "|r"))
+        end
+        z.text:SetText(text)
+        z.text:SetTextColor(rgba(F.text))
+      else
+        z.text:SetText(string.format(L.STATUS_NOT_LEARNED, name))
+        z.text:SetTextColor(rgba(F.leise))
+      end
+    end
   end
 end
 
@@ -170,8 +209,14 @@ local function bauenSammeln()
   f.weiter = S.textKnopf(f, L.NEXT_BUTTON, 110, function() ns.Wegweiser:Weiter() end)
   f.weiter:SetPoint("TOPLEFT", 0, -332)
   S.tooltip(f.weiter, L.NEXT_BUTTON, L.NEXT_WINDOW_HELP)
+  -- Route: nach jedem Knoten von selbst weiter (Patrick, 13. Nov: nicht übers Menü)
+  f.route = S.haken(f, 190, L.SET_ROUTE, L.SET_ROUTE_HELP, function(_, an)
+    ns.db.route = an
+    ns.aktualisieren()
+  end)
+  f.route:SetPoint("LEFT", f.weiter, "RIGHT", 12, 0)
   f.stellen = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  f.stellen:SetPoint("LEFT", f.weiter, "RIGHT", 10, 0)
+  f.stellen:SetPoint("TOPRIGHT", 0, -337)
   -- Preisquelle (Patrick, 13. Nov: Auctionator als Standard, Midas nur auf Wunsch)
   local preise = S.schrift(f, "GameFontHighlightSmall", F.leise)
   preise:SetPoint("TOPLEFT", 0, -364)
@@ -222,6 +267,7 @@ local function bauenSammeln()
     self.zeigen:Setzen(ns.db.zaehlerZeigen)
     self.leiste:Setzen(ns.db.sammelLeisteZeigen)
     self.stellen:SetText(string.format(L.GATHER_SPOTS_KNOWN, ns.SammelKarte and ns.SammelKarte.Anzahl() or 0))
+    self.route:Setzen(ns.db.route)
     self.preis:Setzen(ns.db.preisQuelle or "auctionator")
     local fehlt = Z.FehlendeQuelle()
     self.hinweis:SetText(fehlt and string.format(L.PRICE_MISSING, fehlt) or "")

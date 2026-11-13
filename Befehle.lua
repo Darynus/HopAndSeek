@@ -13,6 +13,7 @@ local BEFEHLE = {
   { "share", L.CMD_SHARE },
   { "pillar [glow | fireflies | beam]", L.CMD_PILLAR },
   { "next [stop]", L.CMD_NEXT },
+  { "trainer [herbalism | mining | skinning]", L.CMD_TRAINER },
   { "news", L.CMD_NEWS },
   { "debug", L.CMD_DEBUG },
   { "help", L.CMD_HELP },
@@ -93,6 +94,11 @@ SlashCmdList.HOPANDSEEK = function(eingabe)
   elseif wort == "next" then
     local zusatz = string.lower(string.match(eingabe or "", "^%s*%S+%s+(%S+)") or "")
     if zusatz == "stop" or zusatz == "off" then ns.Wegweiser:Aus() else ns.Wegweiser:Weiter() end
+  elseif wort == "trainer" then
+    local zusatz = string.lower(string.match(eingabe or "", "^%s*%S+%s+(%S+)") or "")
+    local art = ({ herbalism = "kraut", herbs = "kraut", herb = "kraut", mining = "erz", ore = "erz",
+      skinning = "leder", leather = "leder" })[zusatz]
+    ns.Lehrer:Zeigen(art)
   elseif wort == "news" then
     ns.Neuigkeiten:Umschalten()
   elseif wort == "debug" then
