@@ -38,6 +38,23 @@ local function tooltip(f)
       GameTooltip:AddLine("|T" .. tostring(SU.Icon(id)) .. ":14:14|t " .. SU.Name(id), an and 1 or 0.8, an and 1 or 0.8, an and 1 or 0.8)
     end
   end
+  -- Sammelzähler dieser Sitzung
+  if ns.db.zaehlen and ns.Sammeln then
+    local st = ns.Sammeln:Stand()
+    if st.alle > 0 then
+      GameTooltip:AddLine(" ")
+      GameTooltip:AddLine(L.GATHER_SESSION, 1, 0.82, 0)
+      GameTooltip:AddLine(string.format(L.GATHER_LINE, st.kraut, st.erz + st.rest, st.knoten), 1, 1, 1, true)
+      if st.proStunde then
+        GameTooltip:AddLine(string.format(L.GATHER_RATE, st.proStunde), F.leise[1], F.leise[2], F.leise[3])
+      end
+      if st.wert then
+        local wert = string.format(L.GATHER_WORTH, ns.geld(st.wert))
+        if st.wertProStunde then wert = wert .. "  " .. string.format(L.GATHER_WORTH_RATE, ns.geld(st.wertProStunde)) end
+        GameTooltip:AddLine(wert, F.erfolg[1], F.erfolg[2], F.erfolg[3])
+      end
+    end
+  end
   GameTooltip:AddLine(" ")
   GameTooltip:AddLine(L.ICON_TOOLTIP_HELP, F.leise[1], F.leise[2], F.leise[3], true)
   GameTooltip:Show()
@@ -79,6 +96,9 @@ function A:Bauen()
   end)
   f:SetScript("OnEnter", tooltip)
   f:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  -- Sammelzähler: Anzahl dieser Sitzung klein unter dem Symbol
+  f.zahl = S.schrift(f, "NumberFontNormal", F.text)
+  f.zahl:SetPoint("TOP", f, "BOTTOM", 0, -2)
   self:Aktualisieren()
 end
 
@@ -94,6 +114,12 @@ function A:Aktualisieren()
   f.icon:SetAlpha(pause and 0.6 or 1)
   S.symbolZeigen(f.symbol, jetzt == nil, pause)
   S.randFarbe(f, pause and F.rand or F.akzent)
+  local zahl = ""
+  if ns.db.zaehlen and ns.db.zaehlerZeigen and ns.Sammeln then
+    local st = ns.Sammeln:Stand()
+    if st.alle > 0 then zahl = tostring(st.alle) end
+  end
+  f.zahl:SetText(zahl)
   if GameTooltip:GetOwner() == f then tooltip(f) end
 end
 

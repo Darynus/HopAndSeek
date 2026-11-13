@@ -29,6 +29,7 @@ L.TRACK_OTHER = "Tracking %d"
 
 -- Reiter
 L.TAB_STATUS = "Status"
+L.TAB_GATHERED = "Gathered"
 L.TAB_SETTINGS = "Settings"
 L.TAB_HELP = "Help"
 
@@ -98,6 +99,28 @@ L.SET_CHAT_HELP = "One short line per switch."
 L.SET_MINIMAP = "Show minimap button"
 L.SET_MINIMAP_HELP = "Left-click opens Hop & Seek, right-click switches once."
 
+-- Sammelzähler
+L.GATHER_SESSION = "This Session"
+L.GATHER_TOTAL = "All Time"
+L.GATHER_SINCE = "since %s"
+L.GATHER_NONE = "Nothing gathered yet. Herbs, ore, stone and gems from nodes count here."
+L.GATHER_LINE = "%d herbs, %d ore, stone and gems from %d nodes"
+L.GATHER_RATE = "%.0f per hour"
+L.GATHER_WORTH = "worth %s"
+L.GATHER_WORTH_RATE = "(%s per hour)"
+L.GATHER_HELP = "Counts what you gather from herb and ore nodes, by item, the same in every game language."
+L.GATHER_NO_PRICES = "Install Auctionator and scan the auction house once to see what it is worth."
+L.BTN_GATHER_RESET = "Start over"
+L.BTN_GATHER_RESET_HELP = "Starts a new session. Your all time numbers stay. A new session also starts by itself after 30 minutes without gathering."
+L.SET_GATHER = "Count what I gather"
+L.SET_GATHER_HELP = "Counts herbs, ore, stone and gems you loot from nodes. Only reads your loot window, nothing else."
+L.SET_GATHER_ICON = "Show the count under the tracking icon"
+L.SET_GATHER_ICON_HELP = "A small number with everything you gathered this session."
+L.GOLD_SUFFIX = "g"
+L.SILVER_SUFFIX = "s"
+L.COPPER_SUFFIX = "c"
+L.MSG_GATHER_RESET = "New gathering session started."
+
 -- Anzeige
 L.ICON_TOOLTIP_CYCLE = "Cycle:"
 L.ICON_TOOLTIP_HELP = "Click: switch now\nRight-click: open Hop & Seek\nDrag: move"
@@ -124,6 +147,8 @@ L.CMD_SWITCH = "switch once"
 L.CMD_ON = "switch Hop & Seek on or off"
 L.CMD_MODE = "jump, double or mounted"
 L.CMD_DEBUG = "show the tracking types and the self-check"
+L.CMD_RESET = "start a new gathering session"
+L.CMD_NEWS = "show what is new in this version"
 L.CMD_HELP = "show this list"
 L.MSG_ON = "Hop & Seek is on."
 L.MSG_OFF = "Hop & Seek is off."
@@ -134,3 +159,18 @@ L.MSG_UNKNOWN_COMMAND = "Unknown command. Type /hop help."
 L.MINIMAP_TOOLTIP = "Left-click: open window\nRight-click: switch once\nDrag: move button"
 L.OPTIONS_PAGE_TEXT = "Jump to switch your minimap tracking between herbs and ore. All settings are in the Hop & Seek window."
 L.OPEN_WINDOW = "Open Hop & Seek"
+
+-- Neuigkeiten nach einem Update (Neuigkeiten.lua), neueste Version zuerst
+L.NEWS_TITLE = "What's new in %s"
+L.NEWS_VERSION = "Version %s"
+L.NEWS_AGAIN = "Show this after updates"
+L.NEWS_AGAIN_HELP = "A short window once after Hop & Seek was updated. /hop news shows it again."
+L.NEWS_OK = "Got it"
+L.NEWS = {
+  { version = "1.2.0", zeilen = {
+    "Gathering counter: herbs, ore, stone and gems you loot from nodes, per session and all time, with nodes and an amount per hour. See the new Gathered tab.",
+    "With Auctionator, Hop & Seek also shows what it is worth, in total and per hour.",
+    "The count of this session sits under the tracking icon, the details are in its tooltip.",
+    "Works with square minimaps, and minimap button collectors pick up the button.",
+  } },
+}

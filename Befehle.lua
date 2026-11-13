@@ -8,6 +8,8 @@ local BEFEHLE = {
   { "switch", L.CMD_SWITCH },
   { "on | off", L.CMD_ON },
   { "jump | double | mounted", L.CMD_MODE },
+  { "reset", L.CMD_RESET },
+  { "news", L.CMD_NEWS },
   { "debug", L.CMD_DEBUG },
   { "help", L.CMD_HELP },
 }
@@ -60,6 +62,11 @@ SlashCmdList.HOPANDSEEK = function(eingabe)
     ns.db.ausloeser = MODUS[wort]
     ns.melde(string.format(L.MSG_MODE, MODUS_TEXT[MODUS[wort]]))
     ns.aktualisieren()
+  elseif wort == "reset" then
+    ns.Sammeln:Neu()
+    ns.melde(L.MSG_GATHER_RESET)
+  elseif wort == "news" then
+    ns.Neuigkeiten:Umschalten()
   elseif wort == "debug" then
     debug()
   elseif wort == "help" then

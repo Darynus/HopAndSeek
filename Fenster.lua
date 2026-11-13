@@ -15,6 +15,7 @@ local B = BREITE - X - 20
 
 local REITER = {
   { schluessel = "status", text = L.TAB_STATUS },
+  { schluessel = "sammeln", text = L.TAB_GATHERED },
   { schluessel = "einstellungen", text = L.TAB_SETTINGS },
   { schluessel = "hilfe", text = L.TAB_HELP },
 }
@@ -98,6 +99,101 @@ local function bauenStatus()
     if p.mehrere then table.insert(t, "|cff66d68f" .. L.STATUS_BOTH .. "|r") end
     if p.gesperrt then table.insert(t, "|cfff06059" .. string.format(L.STATUS_BLOCKED, p.gesperrt) .. "|r") end
     self.pruefung:SetText(table.concat(t, "\n"))
+  end
+end
+
+-- Seite: Gathered (Sammelzähler, Sammeln.lua) --------------------------------------------------
+
+local function bauenSammeln()
+  local f = seite("sammeln")
+  local Z = ns.Sammeln
+  S.ueberschrift(f, L.GATHER_SESSION):SetPoint("TOPLEFT", 0, 0)
+  f.seit = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  f.seit:SetPoint("TOPLEFT", 120, -2)
+  f.neu = S.textKnopf(f, L.BTN_GATHER_RESET, 110, function() Z:Neu() end)
+  f.neu:SetHeight(20)
+  f.neu:SetPoint("TOPRIGHT", 0, 2)
+  S.tooltip(f.neu, L.BTN_GATHER_RESET, L.BTN_GATHER_RESET_HELP)
+  f.summe = S.absatz(f, B, F.text, "GameFontHighlight")
+  f.summe:SetPoint("TOPLEFT", 0, -24)
+  f.rate = S.absatz(f, B, F.leise)
+  f.rate:SetPoint("TOPLEFT", 0, -44)
+
+  f.liste = S.liste(f, B, 24 * 6, 24, function(l)
+    local z = S.zeile(l)
+    z.icon = z:CreateTexture(nil, "ARTWORK")
+    z.icon:SetSize(20, 20)
+    z.icon:SetPoint("LEFT", 4, 0)
+    z.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    z.name = S.schrift(z, "GameFontHighlight", F.text)
+    z.name:SetPoint("LEFT", 30, 0)
+    z.name:SetWidth(B - 190)
+    z.name:SetJustifyH("LEFT")
+    z.name:SetWordWrap(false)
+    z.anzahl = S.schrift(z, "GameFontHighlight", F.text)
+    z.anzahl:SetPoint("RIGHT", -100, 0)
+    z.wert = S.schrift(z, "GameFontHighlightSmall", F.erfolg)
+    z.wert:SetPoint("RIGHT", -10, 0)
+    z:SetScript("OnEnter", function(self)
+      if not self.eintrag then return end
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+      if not pcall(GameTooltip.SetItemByID, GameTooltip, self.eintrag.id) then GameTooltip:SetText(tostring(self.eintrag.id)) end
+      GameTooltip:Show()
+    end)
+    z:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return z
+  end)
+  f.liste:SetPoint("TOPLEFT", 0, -72)
+
+  S.ueberschrift(f, L.GATHER_TOTAL):SetPoint("TOPLEFT", 0, -230)
+  f.gesamt = S.absatz(f, B, F.text, "GameFontHighlight")
+  f.gesamt:SetPoint("TOPLEFT", 0, -250)
+
+  f.zaehlen = S.haken(f, B, L.SET_GATHER, L.SET_GATHER_HELP, function(_, an)
+    ns.db.zaehlen = an
+    ns.aktualisieren()
+  end)
+  f.zaehlen:SetPoint("TOPLEFT", 0, -284)
+  f.zeigen = S.haken(f, B, L.SET_GATHER_ICON, L.SET_GATHER_ICON_HELP, function(_, an)
+    ns.db.zaehlerZeigen = an
+    ns.aktualisieren()
+  end)
+  f.zeigen:SetPoint("TOPLEFT", 0, -308)
+  f.hinweis = S.absatz(f, B, F.leise)
+  f.hinweis:SetPoint("TOPLEFT", 0, -340)
+
+  function f:Aktualisieren()
+    local st = Z:Stand()
+    self.seit:SetText(st.start and string.format(L.GATHER_SINCE, date("%H:%M", st.start)) or "")
+    if st.alle == 0 then
+      self.summe:SetText(L.GATHER_NONE)
+      self.rate:SetText("")
+    else
+      self.summe:SetText(string.format(L.GATHER_LINE, st.kraut, st.erz + st.rest, st.knoten))
+      local teile = {}
+      if st.proStunde then table.insert(teile, string.format(L.GATHER_RATE, st.proStunde)) end
+      if st.wert then
+        table.insert(teile, string.format(L.GATHER_WORTH, ns.geld(st.wert)))
+        if st.wertProStunde then table.insert(teile, string.format(L.GATHER_WORTH_RATE, ns.geld(st.wertProStunde))) end
+      end
+      self.rate:SetText(table.concat(teile, "  \194\183  "))
+    end
+    self.liste:Setzen(st.liste, function(z, e)
+      local name = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(e.id)
+      local icon = C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(e.id)
+      z.icon:SetTexture(icon or 134400)
+      z.name:SetText(name or tostring(e.id))
+      z.anzahl:SetText(tostring(e.anzahl))
+      z.wert:SetText(e.wert and ns.geld(e.wert) or "")
+    end, "")
+    local g = Z.Summe(ns.db.gesamt.menge)
+    local k = ns.db.gesamt.knoten
+    local gesamt = string.format(L.GATHER_LINE, g.kraut, g.erz + g.rest, (k.kraut or 0) + (k.erz or 0))
+    if g.wert then gesamt = gesamt .. "\n" .. string.format(L.GATHER_WORTH, ns.geld(g.wert)) end
+    self.gesamt:SetText(gesamt)
+    self.zaehlen:Setzen(ns.db.zaehlen)
+    self.zeigen:Setzen(ns.db.zaehlerZeigen)
+    self.hinweis:SetText(Z.MitPreisen() and L.GATHER_HELP or (L.GATHER_HELP .. " " .. L.GATHER_NO_PRICES))
   end
 end
 
@@ -305,6 +401,7 @@ function W:Bauen()
   if UISpecialFrames then table.insert(UISpecialFrames, "HopAndSeekFrame") end
   if self.echt then bauenEcht(r) else bauenFlach(r) end
   bauenStatus()
+  bauenSammeln()
   bauenEinstellungen()
   bauenHilfe()
   r:Hide()

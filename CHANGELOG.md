@@ -1,5 +1,13 @@
 # Hop & Seek changelog
 
+## 1.2.0 (2026-11-13)
+
+- **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. See the new Gathered tab. The count of this session sits under the tracking icon, the details are in its tooltip.
+- **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour.
+- A new session starts by itself after 30 minutes without gathering, or with Start over and `/hop reset`.
+- **What's new** window once after each update. `/hop news` shows it again.
+- Square minimaps: the minimap button follows the square edge.
+
 ## 1.1.1 (2026-11-06)
 
 - **Fix**: minimap button collectors like MinimapButtonButton now pick up the Hop & Seek button.

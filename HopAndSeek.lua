@@ -41,6 +41,11 @@ local STANDARD = {
   anzeige = {},         -- Position der Anzeige
   minimapZeigen = true,
   minimapWinkel = 330,
+  neuigkeitenZeigen = true, -- nach einem Update einmal zeigen, was neu ist (Neuigkeiten.lua)
+  zaehlen = true,       -- Sammelzähler (Sammeln.lua)
+  zaehlerZeigen = true, -- Anzahl dieser Sitzung am Symbol
+  gesamt = { menge = {}, knoten = { kraut = 0, erz = 0 } },  -- alles bisher Gesammelte
+  -- sitzung: laufende Sitzung des Sammelzählers
   -- probe: Ergebnis der Selbstprüfung { geht, gcd, mehrere, gesperrt }
   probe = {},
   -- fenster: Position des Hauptfensters
@@ -88,6 +93,8 @@ function ns.beimStart(f) table.insert(start, f) end
 
 ns.Ereignis("ADDON_LOADED", function(name)
   if name ~= ADDON then return end
+  -- Gab es die Einstellungen schon? Sonst ist Hop & Seek frisch installiert (Neuigkeiten.lua)
+  ns.bestehend = HopAndSeekDB ~= nil
   HopAndSeekDB = HopAndSeekDB or {}
   ergaenzen(HopAndSeekDB, STANDARD)
   ns.db = HopAndSeekDB

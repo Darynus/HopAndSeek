@@ -27,6 +27,12 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 
 ![Always know what you track](images/hopandseek-2-symbol.png)
 
+## Count what you gather
+
+- **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. The new Gathered tab lists every item.
+- **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour.
+- The count of this session sits under the tracking icon, the details are in its tooltip. A new session starts after 30 minutes without gathering, or with Start over.
+
 ## Knows when to stop
 
 No switching in combat, while swimming (the jump key means swim up there), while flying, in dungeons and raids or while you cast. Cities and inns too, if you like.
@@ -56,13 +62,15 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 | `/hop jump` | switch on every jump |
 | `/hop double` | switch on a double jump |
 | `/hop mounted` | switch on every jump while mounted |
+| `/hop reset` | start a new gathering session |
+| `/hop news` | show what is new |
 | `/hop debug` | show your tracking types and the self-check |
 | `/hop help` | list all commands |
 
 ## Safe and fair
 
 - **One jump, at most one switch.** No timers, nothing happens without your key press.
-- **Only the minimap tracking.** No spells, no macros, no targeting.
+- **Only the minimap tracking.** No spells, no macros, no targeting. The gathering counter only reads your loot window.
 - **Every game language:** tracking types are recognized by their spell IDs, never by names.
 - Free, no ads, MIT license.
 
