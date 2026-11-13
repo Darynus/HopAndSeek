@@ -172,8 +172,21 @@ local function bauenSammeln()
     ns.aktualisieren()
   end)
   f.karte:SetPoint("TOPLEFT", 0, -332)
+  -- Preisquelle (Patrick, 13. Nov: Auctionator als Standard, Midas nur auf Wunsch)
+  local preise = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  preise:SetPoint("TOPLEFT", 0, -364)
+  preise:SetText(L.PRICES)
+  f.preis = S.segmente(f, B - 50, {
+    { wert = "auctionator", text = L.PRICE_AUCTIONATOR, hilfe = L.PRICE_HELP },
+    { wert = "midas", text = L.PRICE_MIDAS, hilfe = L.PRICE_HELP },
+    { wert = "beide", text = L.PRICE_BOTH, hilfe = L.PRICE_HELP },
+  }, function(wert)
+    ns.db.preisQuelle = wert
+    ns.aktualisieren()
+  end)
+  f.preis:SetPoint("TOPLEFT", 50, -359)
   f.hinweis = S.absatz(f, B, F.leise)
-  f.hinweis:SetPoint("TOPLEFT", 0, -362)
+  f.hinweis:SetPoint("TOPLEFT", 0, -384)
 
   function f:Aktualisieren()
     local st = Z:Stand()
@@ -181,7 +194,7 @@ local function bauenSammeln()
     if st.alle == 0 then
       self.summe:SetText(L.GATHER_NONE)
       -- Zuletzt beendete Sitzung, solange noch keine neue läuft
-      self.rate:SetText(ns.db.letzteSitzung and ns.db.letzteSitzung.text or "")
+      self.rate:SetText(Z.LetzteBilanz() or "")
     else
       self.summe:SetText(Z.Text(st))
       local teile = {}
@@ -202,7 +215,7 @@ local function bauenSammeln()
     end, "")
     local g = Z.Summe(ns.db.gesamt.menge)
     local k = ns.db.gesamt.knoten
-    local gesamt = Z.Text(g, (k.kraut or 0) + (k.erz or 0))
+    local gesamt = Z.Text(g, (k.kraut or 0) + (k.erz or 0), k.leder or 0)
     if g.wert then gesamt = gesamt .. "\n" .. string.format(L.GATHER_WORTH, ns.geld(g.wert)) end
     self.gesamt:SetText(gesamt)
     self.zaehlen:Setzen(ns.db.zaehlen)
@@ -210,13 +223,15 @@ local function bauenSammeln()
     self.leiste:Setzen(ns.db.sammelLeisteZeigen)
     self.karte:Setzen(ns.db.karteZeigen)
     self.karte.menge:SetText(string.format(L.GATHER_MAP_COUNT, ns.SammelKarte and ns.SammelKarte.Anzahl() or 0))
-    self.hinweis:SetText(Z.MitPreisen() and L.GATHER_HELP or (L.GATHER_HELP .. " " .. L.GATHER_NO_PRICES))
+    self.preis:Setzen(ns.db.preisQuelle or "auctionator")
+    local fehlt = Z.FehlendeQuelle()
+    self.hinweis:SetText(fehlt and string.format(L.PRICE_MISSING, fehlt) or "")
   end
 end
 
 -- Seite: Journal (Erfolge.lua): Rang, Tagesziel, Rekorde, Abzeichen und Sammelbuch ----------------
 
-local FELD, LUECKE = 22, 3
+local FELD, LUECKE, TITEL, ABSATZ = 19, 2, 12, 3
 
 -- Fortschritt eines Abzeichens als Text: "37 / 100", "3g 20s / 10g 0s", "42 / 60 min"
 local function fortschritt(e)
@@ -291,7 +306,7 @@ local function buchZeichnen(buch, gruppen)
     t:ClearAllPoints()
     t:SetPoint("TOPLEFT", 0, -y)
     t:SetText(string.format(L.BOOK_GROUP, gr.name, gr.gefunden, #gr.eintraege))
-    y = y + 14
+    y = y + TITEL
     for i, e in ipairs(gr.eintraege) do
       n = n + 1
       local b = feld(buch, n)
@@ -303,7 +318,7 @@ local function buchZeichnen(buch, gruppen)
       b.icon:SetAlpha(e.gefunden and 1 or 0.35)
       b:Show()
     end
-    y = y + math.ceil(#gr.eintraege / pro) * (FELD + LUECKE) + 4
+    y = y + math.ceil(#gr.eintraege / pro) * (FELD + LUECKE) + ABSATZ
   end
   for i = n + 1, #buch.felder do buch.felder[i]:Hide() end
 end
@@ -471,7 +486,7 @@ local function bauenJournal()
     self.balken:Setzen((st.punkte - st.von) / (st.bis - st.von),
       string.format(L.RANK_TO_NEXT, E.Zahl(st.bis - st.punkte), st.naechster))
     self.tag:Setzen(st.heute / st.ziel, nil, st.erreicht and F.erfolg or F.akzent)
-    self.tagText:SetText(string.format(L.TODAY_NODES, st.heute, st.ziel))
+    self.tagText:SetText(string.format(L.JOURNAL_TODAY_SHORT, st.heute, st.ziel))
     self.tagText:SetTextColor(rgba(st.erreicht and F.erfolg or F.text))
     self.serie:SetText(E.SerieText(st))
     self.ziel:Setzen(st.ziel)
@@ -561,10 +576,31 @@ local function bauenEinstellungen()
     haken("anzeigeZeigen", L.SET_ICON, L.SET_ICON_HELP, -300),
     haken("gesperrt", L.SET_LOCK, L.SET_LOCK_HELP, -324),
     haken("minimapZeigen", L.SET_MINIMAP, L.SET_MINIMAP_HELP, -348, function() ns.Minimap:Sichtbarkeit() end),
+    haken("lichtsaeule", L.SET_PILLAR, L.SET_PILLAR_HELP, -372, function(an) if ns.Lichtsaeule then ns.Lichtsaeule:Schalten(an) end end),
   }
+  -- Stil der Lichtsäule rechts in ihrer Zeile (Patrick: verschiedene zur Auswahl)
+  local saeulenZeile = f.unten[#f.unten]
+  f.saeulenStil = S.auswahl(f, 104, function()
+    local liste = {}
+    for _, s in ipairs(ns.Lichtsaeule and ns.Lichtsaeule.STILE or {}) do
+      table.insert(liste, { wert = s.wert, text = L[s.text], farbe = s.wert == ns.db.saeulenStil and F.akzent or F.text })
+    end
+    return liste
+  end, function(wert)
+    ns.db.saeulenStil = wert
+    if ns.Lichtsaeule then ns.Lichtsaeule:StilSetzen(wert) end
+    ns.aktualisieren()
+  end)
+  f.saeulenStil:SetPoint("RIGHT", saeulenZeile, "RIGHT", 0, 0)
+  S.tooltip(f.saeulenStil, L.PILLAR_STYLE_GLOW .. ", " .. L.PILLAR_STYLE_FIREFLIES .. ", " .. L.PILLAR_STYLE_BEAM, L.PILLAR_STYLE_HELP)
 
   function f:Aktualisieren()
     self.ausloeser:Setzen(ns.db.ausloeser)
+    if ns.Lichtsaeule then
+      for _, s in ipairs(ns.Lichtsaeule.STILE) do
+        if s.wert == ns.Lichtsaeule.Stil() then self.saeulenStil:Setzen(L[s.text]) end
+      end
+    end
     self.abstand:Setzen(ns.db.abstand or 2)
     for _, h in ipairs(self.schalter) do h:Setzen(ns.db[h.feld]) end
     -- Kreis: was der Char hat, dazu, was eingeschaltet ist; Kräuter und Erz stehen immer da

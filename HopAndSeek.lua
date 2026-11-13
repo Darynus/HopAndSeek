@@ -13,6 +13,13 @@ ns.VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetada
 
 function ns.melde(text)
   DEFAULT_CHAT_FRAME:AddMessage(ns.FARBE .. L.ADDON_NAME .. ":|r " .. tostring(text))
+  -- Fehler aus Ereignissen auch merken: nach /reload stehen sie in den gespeicherten Daten
+  -- (fehlerLog), auch ohne BugSack (Patrick, 13. Nov: „du kannst ja auch die Logs lesen“)
+  if ns.db and string.find(tostring(text), "^Error in ") then
+    ns.db.fehlerLog = type(ns.db.fehlerLog) == "table" and ns.db.fehlerLog or {}
+    table.insert(ns.db.fehlerLog, date("%Y-%m-%d %H:%M:%S") .. "  " .. tostring(text))
+    while #ns.db.fehlerLog > 30 do table.remove(ns.db.fehlerLog, 1) end
+  end
 end
 
 -- Prüft, ob eine Funktion existiert, z. B. ns.api("C_Minimap.SetTracking")
@@ -53,8 +60,15 @@ local STANDARD = {
   knotenKarte = {},     -- [Karten-ID] = { { x, y, art, n, inhalt, zuletzt } }
   berufGemeldet = {},   -- ["Name-Realm"] = { [Fertigkeitslinie] = Stufe, zu der gemeldet wurde }
   freunde = {},         -- geteilte Journale der Gruppe (Teilen.lua)
+  sitzungen = {},       -- ["Name-Realm"] = laufende Sitzung des Sammelzählers (je Char)
+  bilanzen = {},        -- ["Name-Realm"] = Bilanz der zuletzt beendeten Sitzung
+  preisQuelle = "auctionator", -- "auctionator", "midas" oder "beide" (Sammeln.lua)
+  lichtsaeule = false,  -- Lichtsäule über dem Knoten vor dir (Lichtsaeule.lua), ändert CVars
+  saeulenStil = "schein", -- "schein" (Glow), "funken" (Fireflies) oder "strahl" (Beam)
+  lichtsaeuleAlt = {},  -- Werte der CVars vor dem Einschalten
+  knotenObjekte = {},   -- [Objekt-ID] = "kraut" oder "erz", gelernt beim Sammeln
+  kuerschner = {},      -- ["Name-Realm"] = true, wenn der Char schon gekürschnert hat
   gesamt = { menge = {}, knoten = { kraut = 0, erz = 0 } },  -- alles bisher Gesammelte
-  -- sitzung: laufende Sitzung des Sammelzählers
   -- probe: Ergebnis der Selbstprüfung { geht, gcd, mehrere, gesperrt }
   probe = {},
   -- fenster: Position des Hauptfensters

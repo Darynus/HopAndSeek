@@ -104,7 +104,7 @@ L.SET_MINIMAP_HELP = "Left-click opens Hop & Seek, right-click switches once."
 L.GATHER_SESSION = "This Session"
 L.GATHER_TOTAL = "All Time"
 L.GATHER_SINCE = "since %s"
-L.GATHER_NONE = "Nothing gathered yet. Herbs, ore, stone and gems from nodes count here."
+L.GATHER_NONE = "Nothing gathered yet. Herbs, ore, stone, gems and leather from nodes and skinning count here."
 L.GATHER_HERB_ONE = "1 herb"
 L.GATHER_HERBS = "%d herbs"
 L.GATHER_ORE_ONE = "1 ore, stone or gem"
@@ -129,12 +129,12 @@ L.SET_GATHER_BAR_HELP = "A small window with gold per hour and your best finds w
 L.GATHER_RATE = "%.0f per hour"
 L.GATHER_WORTH = "worth %s"
 L.GATHER_WORTH_RATE = "(%s per hour)"
-L.GATHER_HELP = "Counts what you gather from herb and ore nodes, by item, the same in every game language."
+L.GATHER_HELP = "Counts what you gather from herb and ore nodes and from skinning, by item, the same in every game language."
 L.GATHER_NO_PRICES = "Install Auctionator or Midas and scan the auction house once to see what it is worth."
 L.BTN_GATHER_RESET = "Start over"
 L.BTN_GATHER_RESET_HELP = "Starts a new session. Your all time numbers stay. A new session also starts by itself after 30 minutes without gathering."
 L.SET_GATHER = "Count what I gather"
-L.SET_GATHER_HELP = "Counts herbs, ore, stone and gems you loot from nodes. Only reads your loot window, nothing else."
+L.SET_GATHER_HELP = "Counts herbs, ore, stone and gems you loot from nodes and the leather you skin. Only reads your loot window, nothing else."
 L.SET_GATHER_ICON = "Show the count under the tracking icon"
 L.SET_GATHER_ICON_HELP = "A small number with everything you gathered this session."
 L.GOLD_SUFFIX = "g"
@@ -149,7 +149,7 @@ L.RANK_TITLE = "Rank %d: %s"
 L.RANK_TO_NEXT = "%s points to %s"
 L.JOURNAL_POINTS_TEXT = "%s points"
 L.JOURNAL_POINTS = "Seeker points"
-L.JOURNAL_POINTS_HELP = "Every node gives 10 points, a new kind for your field guide 50, an uncommon find 15 and your daily goal 100. Your points make your rank. All characters of your account count together."
+L.JOURNAL_POINTS_HELP = "Every node or skinned creature gives 10 points, a new kind for your field guide 50, an uncommon find 15 and your daily goal 100. Your points make your rank. All characters of your account count together."
 L.JOURNAL_TODAY = "Today"
 L.TODAY_NODES = "%d of %d nodes today"
 L.STREAK_ONE = "Streak: 1 day"
@@ -169,7 +169,8 @@ L.JOURNAL_BOOK = "Field guide"
 L.JOURNAL_BOOK_COUNT = "Field guide %d/%d"
 L.JOURNAL_BOOK_HELP = "Every herb, ore, stone and gem you can gather in Forever. Grey ones are still out there."
 L.JOURNAL_MINUTES_OF = "%d / %d min"
-L.BOOK_GROUPS = { kraut = "Herbs", erz = "Ore and stone", edel = "Gems and more" }
+L.BOOK_GROUPS = { kraut = "Herbs", erz = "Ore and stone", edel = "Gems and more", leder = "Leather and hides" }
+L.JOURNAL_TODAY_SHORT = "%d of %d"
 L.BOOK_GROUP = "%s  %d/%d"
 L.BOOK_FOUND = "Gathered %s, first found %s"
 L.BOOK_MISSING = "Not found yet"
@@ -206,10 +207,13 @@ L.MAP_NODE_TIMES = "Gathered %d times, last on %s"
 L.MAP_NODE_REMOVE = "Right-click: remove this spot"
 L.SKILL_HERBALISM = "Herbalism"
 L.SKILL_MINING = "Mining"
+L.SKILL_SKINNING = "Skinning"
 L.SKILL_LEVEL = "%s %d/%d"
 L.SKILL_CAPPED_TITLE = "Time to train"
-L.SKILL_CAPPED_HELP = "You reached the limit. Visit a trainer to keep learning."
+L.SKILL_CAPPED_HELP = "You reached the limit. Visit a trainer to learn up to %d."
 L.SKILL_CAPPED_SHORT = "%s %d/%d: visit a trainer"
+L.SKILL_CAPPED_LEVEL = "%s %d/%d: next rank at level %d"
+L.SKILL_SOON = "%s %d/%d: visit a trainer soon"
 L.SHARE_BUTTON = "Share"
 L.SHARE_BUTTON_HELP = "Sends your rank, streak and records to your group, once per click. Group members with Hop & Seek see them in their journal."
 L.SHARE_NO_GROUP = "Join a group to share your journal."
@@ -234,6 +238,7 @@ L.BADGES = {
   knoten5000 = { "Nothing Escapes You", "Gather 5,000 nodes." },
   kraut250 = { "Green Thumb", "Gather 250 herb nodes." },
   erz250 = { "Rock Solid", "Gather 250 ore nodes." },
+  leder250 = { "Fur Trader", "Skin 250 creatures." },
   selten1 = { "Shiny!", "Find something uncommon in a node, like a gem or silver ore." },
   selten50 = { "Treasure Hunter", "Find 50 uncommon or better items in nodes." },
   arten10 = { "Collector", "Find 10 different kinds for your field guide." },
@@ -281,6 +286,28 @@ L.CMD_DEBUG = "show the tracking types and the self-check"
 L.CMD_RESET = "start a new gathering session"
 L.CMD_JOURNAL = "open the journal: rank, daily goal, records, badges, field guide"
 L.CMD_SHARE = "share your journal with your group"
+L.CMD_PILLAR = "switch the light pillar on or off, or pick its look"
+L.GATHER_LEATHER_ONE = "1 leather or hide"
+L.GATHER_LEATHER = "%d leather and hides"
+L.GATHER_CREATURE_ONE = "1 creature"
+L.GATHER_CREATURES = "%d creatures"
+L.GATHER_AND = " and "
+L.SET_PILLAR = "Light pillar over the node in front of you"
+L.SET_PILLAR_HELP = "A beam of light over the herb, ore vein or creature to skin right in front of you, through the game's soft targeting. While it is on, Hop & Seek changes a few interact settings of the game and puts them back when you switch it off."
+L.PILLAR_ON = "Light pillar on. Walk up to a herb or ore vein."
+L.PILLAR_OFF = "Light pillar off. The game's interact settings are back as they were."
+L.PILLAR_COMBAT = "Not in combat. Try again after the fight."
+L.PILLAR_STYLE_GLOW = "Glow"
+L.PILLAR_STYLE_FIREFLIES = "Fireflies"
+L.PILLAR_STYLE_BEAM = "Beam"
+L.PILLAR_STYLE_HELP = "How the light pillar looks: Glow, a soft column of light; Fireflies, little lights rising around the node; Beam, a thin clear line."
+L.PILLAR_UNSUPPORTED = "This game client has no soft targeting, the light pillar cannot work here."
+L.PRICES = "Prices"
+L.PRICE_AUCTIONATOR = "Auctionator"
+L.PRICE_MIDAS = "Midas"
+L.PRICE_BOTH = "Both"
+L.PRICE_HELP = "Where Hop & Seek gets the value of your haul. Both: Auctionator first, Midas for what Auctionator does not know."
+L.PRICE_MISSING = "%s is not installed. Scan the auction house once with it to see values."
 L.CMD_NEWS = "show what is new in this version"
 L.CMD_HELP = "show this list"
 L.MSG_ON = "Hop & Seek is on."
@@ -307,7 +334,10 @@ L.NEWS = {
     "Gathering spots on your world map: every node you gather becomes a small pin, also on OpenMap.",
     "Share your journal with your group and compare ranks and records with your friends.",
     "Hop & Seek tells you when Herbalism or Mining needs a trainer and sums up each gathering session in your chat.",
-    "Prices also come from Midas when Auctionator is not installed.",
+    "Prices from Auctionator, or from Midas if you prefer (Gathered tab).",
+    "Skinning counts too: leather and hides, gold per hour, points and a new page in the field guide.",
+    "Light pillar: a beam over the herb, ore vein or creature to skin in front of you. Switch it on in Settings.",
+    "Each character has its own gathering session.",
     "The count of this session sits under the tracking icon, the details are in its tooltip.",
     "Works with square minimaps, and minimap button collectors pick up the button.",
   } },

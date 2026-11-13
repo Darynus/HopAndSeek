@@ -43,21 +43,27 @@ E.VORLAGE = {
   tage = 0,         -- Tage mit erreichtem Ziel
 }
 
--- Sammelbuch: was es in Forever aus Kräutern und Adern gibt (Wowhead Forever, 13. Nov 2026),
--- je Gruppe nach Stufe sortiert. Neu in Forever: Frilled Lichen, Rosecap, Stranglevine, Demonsage,
--- Marefoil, Death Lotus, Pyrite, Bauxite, Heavy Thorium Ore, Pitchblende, Fel Crystal, Torbernite.
--- Wird etwas gesammelt, das hier fehlt, kommt es ans Ende seiner Gruppe.
+-- Sammelbuch: was es in Forever aus Kräutern, Adern und beim Kürschnern gibt (Wowhead Forever,
+-- 13. Nov 2026), je Gruppe nach Stufe sortiert. Neu in Forever: Frilled Lichen, Rosecap,
+-- Stranglevine, Demonsage, Marefoil, Death Lotus, die vier Kräutersamen (fallen aus Kräutern, Patricks
+-- Screenshot), Pyrite, Bauxite, Heavy Thorium Ore, Pitchblende, Fel Crystal, Torbernite, Pristine
+-- Leather, Hide und Scale, Fel Hide und Fel Leather. Beim Leder nur, was man kürschnert, nicht
+-- Gegerbtes, Salz oder Federn. Wird etwas gesammelt, das hier fehlt, kommt es ans Ende seiner Gruppe.
 E.BUCH = {
   { schluessel = "kraut", ids = {
     2447, 765, 2449, 785, 2450, 2452, 3820, 2453, 3355, 3369, 3356, 249399, 3357, 3818, 3821, 3358,
     3819, 8153, 4625, 8831, 8836, 249424, 8838, 8839, 8845, 8846, 13464, 13463, 13465, 13466, 13467,
-    13468, 249274, 248821, 248823, 248822 } },
+    13468, 249274, 248821, 248823, 248822, 268415, 268416, 268417, 268418 } },
   { schluessel = "erz", ids = {
     2770, 2771, 2775, 249391, 2772, 2776, 3858, 249425, 7911, 11370, 10620, 248815, 249426,
     2835, 2836, 2838, 7912, 12365 } },
   { schluessel = "edel", ids = {
     774, 818, 1210, 1206, 1705, 1529, 3864, 7909, 7910, 12361, 12799, 12364, 12800, 12363, 11382,
     248819, 248820 } },
+  { schluessel = "leder", ids = {
+    2934, 2318, 783, 2319, 4232, 249427, 4234, 4235, 8167, 4304, 8169, 8154, 8165, 249428, 8170, 8171,
+    15412, 15415, 15419, 15422, 15423, 15417, 15408, 15416, 20498, 249429, 248824, 248825, 15414, 17012,
+    19767, 19768, 15410 } },
 }
 
 -- Abzeichen: art sagt, welcher Wert zählt (E.Wert), ziel, ab wann es gilt. icon ist ein Gegenstand,
@@ -70,6 +76,7 @@ E.ABZEICHEN = {
   { key = "knoten5000", art = "knoten", ziel = 5000, icon = 10620 },
   { key = "kraut250", art = "kraut", ziel = 250, icon = 8838 },
   { key = "erz250", art = "erz", ziel = 250, icon = 2771 },
+  { key = "leder250", art = "leder", ziel = 250, icon = 4304 },
   { key = "selten1", art = "selten", ziel = 1, icon = 818 },
   { key = "selten50", art = "selten", ziel = 50, icon = 7910 },
   { key = "arten10", art = "arten", ziel = 10, icon = 785 },
@@ -176,8 +183,8 @@ end
 function E.Wert(a)
   local d, k = ns.db.erfolge, ns.db.gesamt.knoten
   local art = a.art
-  if art == "knoten" then return (k.kraut or 0) + (k.erz or 0) end
-  if art == "kraut" or art == "erz" then return k[art] or 0 end
+  if art == "knoten" then return (k.kraut or 0) + (k.erz or 0) + (k.leder or 0) end
+  if art == "kraut" or art == "erz" or art == "leder" then return k[art] or 0 end
   if art == "selten" then return d.selten or 0 end
   if art == "arten" then return E.Arten() end
   if art == "fund" then return d.funde[a.item] and 1 or 0 end
@@ -253,7 +260,7 @@ end
 function E:Rekorde()
   local st = ns.Sammeln:Stand()
   if not st.start then return end
-  local d, s = ns.db.erfolge, ns.db.sitzung
+  local d, s = ns.db.erfolge, ns.Sammeln:Sitzung()
   s.gemeldet = s.gemeldet or {}
   local function pruefen(art, wert, ab, meldung)
     local r = d.rekord[art]
@@ -265,8 +272,8 @@ function E:Rekorde()
       melden(meldung(alt))
     end
   end
-  pruefen("knoten", st.knoten, E.KNOTEN_AB, function(alt)
-    return { art = "rekord", titel = L.TOAST_RECORD, text = string.format(L.RECORD_NODES_TEXT, st.knoten),
+  pruefen("knoten", st.quellen, E.KNOTEN_AB, function(alt)
+    return { art = "rekord", titel = L.TOAST_RECORD, text = string.format(L.RECORD_NODES_TEXT, st.quellen),
       unter = string.format(L.TOAST_RECORD_OLD, E.Zahl(alt)) }
   end)
   pruefen("dauer", st.dauer, 0)
@@ -425,7 +432,7 @@ function E:Einrichten()
   if d.seit then return end
   d.seit = zeit()
   local g = ns.db.gesamt
-  local plus = ((g.knoten.kraut or 0) + (g.knoten.erz or 0)) * E.PUNKTE.knoten
+  local plus = ((g.knoten.kraut or 0) + (g.knoten.erz or 0) + (g.knoten.leder or 0)) * E.PUNKTE.knoten
   for id in pairs(g.menge) do
     if not d.funde[id] then
       d.funde[id] = d.seit

@@ -2,9 +2,9 @@
 
 ## 1.2.0 (2026-11-13)
 
-- **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. See the new Gathered tab. The count of this session sits under the tracking icon, the details are in its tooltip.
+- **Gathering counter**: herbs, ore, stone and gems you loot from nodes, and the leather and hides you skin, per session and all time, with the number of nodes and an amount per hour. See the new Gathered tab. The count of this session sits under the tracking icon, the details are in its tooltip.
 - **Gathering window**: a small window like the bar of Campfire Buddy shows your gold per hour, how much you gathered and your best finds. It appears with the first node of a session and hides when the session ends. Drag it anywhere, right-click opens the Gathered tab.
-- **What it is worth**: with Auctionator or Midas installed, Hop & Seek shows the value of your haul, in total and per hour.
+- **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour. Prefer Midas? Pick it as your price source in the Gathered tab.
 - **Journal**: a new tab that makes gathering a game.
   - Every node earns seeker points, new kinds and uncommon finds earn more. Your points make your rank, from Wanderer to Legend of the Wilds.
   - Set a daily goal (10, 25, 50 or 100 nodes) and keep your streak going day after day.
@@ -17,6 +17,10 @@
 - **Gathering spots on your world map**: every node you gather becomes a small pin with the icon of what grew there, green for herbs and brown for ore. Spots close together count as one, caves count for their zone. Works with OpenMap, right-click removes a pin.
 - **Time to train**: Hop & Seek tells you once when Herbalism or Mining reaches the limit of your rank, and the gathering window reminds you until you have visited a trainer.
 - **Session summary**: when a session ends, a line in your chat sums it up: time, nodes, value and your best find.
+- **Light pillar**: a beam of light over the herb, ore vein or creature to skin right in front of you, in three looks: Glow, Fireflies and Beam. Switch it on in Settings or with `/hop pillar`. It uses the game's soft targeting and puts the game's settings back when you switch it off.
+- **Skinning counts too**: leather and hides in the counter, gold per hour, points, a badge and a new page in the field guide.
+- **Time to train** knows the level you need: 150 from level 10, 225 from level 20, 300 from level 35. The gathering window reminds you a little before the limit.
+- Each character has its own gathering session.
 - A new session starts by itself after 30 minutes without gathering, or with Start over and `/hop reset`.
 - **What's new** window once after each update. `/hop news` shows it again.
 - Square minimaps: the minimap button follows the square edge.

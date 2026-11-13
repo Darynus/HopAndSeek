@@ -11,6 +11,7 @@ local BEFEHLE = {
   { "reset", L.CMD_RESET },
   { "journal", L.CMD_JOURNAL },
   { "share", L.CMD_SHARE },
+  { "pillar [glow | fireflies | beam]", L.CMD_PILLAR },
   { "news", L.CMD_NEWS },
   { "debug", L.CMD_DEBUG },
   { "help", L.CMD_HELP },
@@ -41,6 +42,14 @@ local function debug()
     zeile(string.format("%d. %s (%d)%s%s", e.nr, SU.Name(id), id, e.aktiv and " active" or "", ns.db.kreis[id] and " in cycle" or ""))
   end
   if #ids == 0 then zeile("no tracking types found") end
+  -- Lichtsäule: was sie gerade sieht. Steht nach /reload auch in den gespeicherten Daten (diagnose).
+  if ns.Lichtsaeule then
+    local d = ns.Lichtsaeule.Diagnose()
+    ns.db.diagnose = d
+    zeile(string.format("pillar on %s, possible %s, target %s, kind %s", d.an, d.moeglich, d.ziel, d.art))
+    zeile(string.format("dead %s, loot %s, looted %s, plate %s, skinning %s", d.tot, d.beute, d.gepluendert, d.plakette, d.kuerschnern))
+    zeile("professions: " .. table.concat(d.berufe, "; "))
+  end
   zeile(string.format("works %s, gcd %s, several %s, blocked %s, API %s", tostring(p.geht), tostring(p.gcd),
     tostring(p.mehrere), tostring(p.gesperrt), (ns.api("C_Minimap.SetTracking") and "C_Minimap")
     or (ns.api("SetTracking") and "SetTracking") or "none"))
@@ -71,6 +80,15 @@ SlashCmdList.HOPANDSEEK = function(eingabe)
     ns.Fenster:Zeigen("journal")
   elseif wort == "share" then
     ns.Teilen:Senden()
+  elseif wort == "pillar" then
+    local stil = ({ glow = "schein", fireflies = "funken", beam = "strahl" })[string.lower(string.match(eingabe or "", "^%s*%S+%s+(%S+)") or "")]
+    if ns.Lichtsaeule and stil then
+      ns.Lichtsaeule:StilSetzen(stil)
+      if not ns.db.lichtsaeule then ns.Lichtsaeule:Schalten(true) end
+      ns.aktualisieren()
+    elseif ns.Lichtsaeule then
+      ns.Lichtsaeule:Schalten(not ns.db.lichtsaeule)
+    end
   elseif wort == "news" then
     ns.Neuigkeiten:Umschalten()
   elseif wort == "debug" then

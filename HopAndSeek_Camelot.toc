@@ -18,6 +18,7 @@ Meldung.lua
 Berufe.lua
 Teilen.lua
 SammelKarte.lua
+Lichtsaeule.lua
 Anzeige.lua
 SammelLeiste.lua
 Fenster.lua

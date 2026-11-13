@@ -11,7 +11,7 @@ local F, rgba = S.F, S.rgba
 local G = { funde = {} }
 ns.SammelLeiste = G
 
-local BREITE, RAND, FUND = 250, 6, 18
+local BREITE, RAND, FUND = 280, 6, 18
 local MAX_FUNDE = 3
 local KOPF, GROSS, INFO, UNTEN, BERUF = 18, 22, 16, 22, 14
 local INNEN = BREITE - 2 * RAND - 8
@@ -103,10 +103,12 @@ function G:Bauen()
   f.info:SetPoint("TOPLEFT", RAND + 4, -RAND - KOPF - GROSS - 2)
   f.info:SetWidth(INNEN)
   f.info:SetJustifyH("LEFT")
-  f.info:SetWordWrap(false)
-  -- Hinweis, wenn Kräuterkunde oder Bergbau einen Lehrer braucht (Berufe.lua)
+  -- Lange Zeilen (Kräuter, Erz und Leder) dürfen zweizeilig sein, statt abgeschnitten (Patricks
+  -- Screenshot, 13. Nov)
+  f.info:SetWordWrap(true)
+  if f.info.SetMaxLines then f.info:SetMaxLines(2) end
+  -- Hinweis, wenn ein Sammelberuf einen Lehrer braucht (Berufe.lua)
   f.beruf = S.schrift(f, "GameFontHighlightSmall", F.hinweis)
-  f.beruf:SetPoint("TOPLEFT", RAND + 4, -RAND - KOPF - GROSS - INFO - 2)
   f.beruf:SetWidth(INNEN)
   f.beruf:SetJustifyH("LEFT")
   f.beruf:SetWordWrap(false)
@@ -199,11 +201,17 @@ function G:Aktualisieren()
       return a.anzahl > b.anzahl
     end)
   end
-  -- Braucht ein Beruf den Lehrer, steht das unter der Infozeile, die Funde rücken nach unten
-  local warnung = ns.Berufe and ns.Berufe.Warnung()
+  -- Infozeile ein- oder zweizeilig. Braucht ein Beruf den Lehrer, steht das darunter (dringend in
+  -- Gelb, bald in Grau), die Funde rücken nach unten.
+  local info = math.min(2 * 12 + 2, math.max(INFO, (f.info:GetStringHeight() or 12) + 4))
+  local warnung, dringend
+  if ns.Berufe then warnung, dringend = ns.Berufe.Warnung() end
   f.beruf:SetShown(warnung ~= nil)
   f.beruf:SetText(warnung or "")
-  local extra = warnung and BERUF or 0
+  f.beruf:SetTextColor(rgba(dringend and F.hinweis or F.leise))
+  f.beruf:ClearAllPoints()
+  f.beruf:SetPoint("TOPLEFT", RAND + 4, -RAND - KOPF - GROSS - info - 2)
+  local extra = (info - INFO) + (warnung and BERUF or 0)
   local n = 0
   for i, z in ipairs(self.funde) do
     local e = liste[i]

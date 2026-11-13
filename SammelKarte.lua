@@ -94,7 +94,11 @@ end
 
 -- Vom Sammelzähler: beim ersten Gegenstand die Stelle, dann zählt jeder Gegenstand für sie
 function K:Beute(id, menge, _, knotenArt)
-  if knotenArt then self:Knoten(knotenArt) end
+  if knotenArt == "kraut" or knotenArt == "erz" then
+    self:Knoten(knotenArt)
+  elseif knotenArt then
+    self.aktuell = nil
+  end
   local e = self.aktuell
   if e then e.inhalt[id] = (e.inhalt[id] or 0) + (menge or 1) end
 end
@@ -276,7 +280,13 @@ local function anhaengen()
   if K.wache or not WorldMapFrame then return end
   local wache = CreateFrame("Frame", nil, WorldMapFrame)
   K.wache = wache
-  wache:SetScript("OnUpdate", function() K:Zeichnen(false) end)
+  local warten = 0
+  wache:SetScript("OnUpdate", function(_, dt)
+    warten = warten + (dt or 0)
+    if warten < 0.1 then return end
+    warten = 0
+    K:Zeichnen(false)
+  end)
   wache:SetScript("OnShow", function() K:Zeichnen(true) end)
 end
 

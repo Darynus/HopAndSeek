@@ -52,6 +52,9 @@ function M:Bauen()
     s:SetJustifyH("LEFT")
     s:SetWordWrap(false)
   end
+  -- Lange Erklärungen (Abzeichen) dürfen zweizeilig sein, statt abgeschnitten (Patricks Screenshot)
+  f.unter:SetWordWrap(true)
+  if f.unter.SetMaxLines then f.unter:SetMaxLines(2) end
 
   f.zeit, f.dauer = 0, DAUER
   f:SetScript("OnUpdate", function(self, dt)
@@ -95,6 +98,10 @@ function M:Weiter()
   f.text:SetText(m.text or "")
   f.text:SetTextColor(rgba(m.farbe or F.text))
   f.unter:SetText(m.unter or "")
+  -- Höhe nach dem Text: eine Zeile Untertitel passt in die Grundhöhe, eine zweite macht sie höher
+  local zeile = 12
+  local unter = math.min(2 * zeile + 2, math.max(zeile, (m.unter and m.unter ~= "") and (f.unter:GetStringHeight() or zeile) or zeile))
+  f:SetHeight(HOEHE + unter - zeile)
   f.zeit = 0
   -- Warten noch weitere, ist jede etwas kürzer zu sehen
   f.dauer = #self.warten > 0 and KURZ or DAUER

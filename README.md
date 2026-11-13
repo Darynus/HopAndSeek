@@ -29,11 +29,12 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 
 ## Count what you gather
 
-- **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. The new Gathered tab lists every item.
+- **Gathering counter**: herbs, ore, stone and gems you loot from nodes, and the leather and hides you skin, per session and all time, with the number of nodes and an amount per hour. The new Gathered tab lists every item.
 - **Gold per hour**: a small gathering window shows your gold per hour, how much you gathered and your best finds while you are out gathering.
-- **What it is worth**: with Auctionator or Midas installed, Hop & Seek shows the value of your haul, in total and per hour.
+- **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour. Midas works too, pick it in the Gathered tab.
+- **Light pillar**: a beam of light over the herb, ore vein or creature to skin right in front of you, in three looks: a soft Glow, rising Fireflies or a clear Beam. Switch it on in Settings.
 - **Gathering spots on your world map**: every node you gather becomes a small pin with the icon of what grew there. After a few rounds you see the good routes. Works with OpenMap too.
-- **Time to train**: a reminder when Herbalism or Mining needs a trainer.
+- **Time to train**: a reminder when Herbalism, Mining or Skinning needs a trainer, and the level you need for the next rank.
 - The count of this session sits under the tracking icon, the details are in its tooltip. A new session starts after 30 minutes without gathering, or with Start over, and a line in your chat sums up the last one.
 
 ## Make gathering a game
@@ -80,6 +81,7 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 | `/hop reset` | start a new gathering session |
 | `/hop journal` | open the journal: rank, daily goal, records, badges, field guide |
 | `/hop share` | share your journal with your group |
+| `/hop pillar` | switch the light pillar on or off |
 | `/hop news` | show what is new |
 | `/hop debug` | show your tracking types and the self-check |
 | `/hop help` | list all commands |
