@@ -255,6 +255,12 @@ local function plakette(guid)
   if C_NamePlate.GetNamePlateForUnit then
     local ok, p = pcall(C_NamePlate.GetNamePlateForUnit, "softinteract")
     if ok and p then return p end
+    -- Manche Plaketten kommen nur unter ihrer eigenen Kennung ("nameplate12"): die zuletzt
+    -- angelegte, die zur Zielhilfe gehört
+    if Li.platteToken then
+      local ok2, p2 = pcall(C_NamePlate.GetNamePlateForUnit, Li.platteToken)
+      if ok2 and p2 and UnitGUID and UnitGUID(Li.platteToken) == guid then return p2 end
+    end
   end
   if C_NamePlate.GetNamePlates then
     local ok, alle = pcall(C_NamePlate.GetNamePlates)
@@ -300,27 +306,42 @@ function Li:Verstecken()
   end
 end
 
--- Die letzten acht Ziele mit allem, was die Säule geprüft hat. Steht nach /reload in den
+-- Die letzten 20 Schritte mit allem, was die Säule geprüft hat. Steht nach /reload in den
 -- gespeicherten Daten (saeulenLog), so lässt sich nachsehen, warum keine Säule kam.
-local zuletztZiel
-local function merken(guid)
-  if not guid or guid == zuletztZiel then return end
-  zuletztZiel = guid
+local zuletztZeile
+local function protokoll(zeile)
+  if zeile == zuletztZeile then return end
+  zuletztZeile = zeile
+  ns.db.saeulenLog = type(ns.db.saeulenLog) == "table" and ns.db.saeulenLog or {}
+  table.insert(ns.db.saeulenLog, date("%H:%M:%S") .. " " .. zeile)
+  while #ns.db.saeulenLog > 20 do table.remove(ns.db.saeulenLog, 1) end
+end
+Li.Protokoll = protokoll
+
+-- Geprüft wird nur, wenn sich Ziel oder Anzeige ändern: In Städten kommen Plaketten-Ereignisse
+-- dutzendweise, die Diagnose fragt jedes Mal Berufe und alle Plaketten ab (Patrick, 13. Nov: die
+-- Add-ons dürfen nicht zu viel fressen).
+local zuletztGeprueft
+local function merken(guid, gezeigt)
+  local schluessel = tostring(guid) .. (gezeigt and "+" or "-")
+  if schluessel == zuletztGeprueft then return end
+  zuletztGeprueft = schluessel
   local ok, d = pcall(Li.Diagnose)
   if not ok then return end
-  ns.db.saeulenLog = type(ns.db.saeulenLog) == "table" and ns.db.saeulenLog or {}
-  table.insert(ns.db.saeulenLog, string.format("%s %s art=%s tot=%s beute=%s gepl=%s plakette=%s kuerschner=%s",
-    d.zeit, d.ziel, d.art, d.tot, d.beute, d.gepluendert, d.plakette, d.kuerschnern))
-  while #ns.db.saeulenLog > 8 do table.remove(ns.db.saeulenLog, 1) end
+  protokoll(string.format("%s art=%s tot=%s beute=%s plakette=%s kuerschner=%s nameplateCVar=%s gezeigt=%s",
+    d.ziel, d.art, d.tot, d.beute, d.plakette, d.kuerschnern, tostring(d.cvars.SoftTargetNameplateInteract), tostring(gezeigt)))
 end
 
 function Li:Aktualisieren()
   if not (ns.db and ns.db.lichtsaeule and ns.db.an) then return self:Verstecken() end
   local guid = UnitGUID and UnitGUID("softinteract")
-  if guid and not geheim(guid) then merken(guid) end
   local art = Li.Art(guid)
-  if not art then return self:Verstecken() end
+  if not art then
+    if guid and not geheim(guid) then merken(guid, false) end
+    return self:Verstecken()
+  end
   local platte = plakette(guid)
+  if guid and not geheim(guid) then merken(guid, platte ~= nil) end
   if not platte then return self:Verstecken() end
   self:Bauen()
   local f = self.rahmen
@@ -337,7 +358,24 @@ end
 
 local function neu() Li:Aktualisieren() end
 ns.Ereignis("PLAYER_SOFT_INTERACT_CHANGED", neu)
-ns.Ereignis("NAME_PLATE_UNIT_ADDED", neu)
+-- Neue Plakette: gehört sie zur Zielhilfe, merken wir uns ihre Kennung (für plakette())
+ns.Ereignis("NAME_PLATE_UNIT_ADDED", function(token)
+  if not (ns.db and ns.db.lichtsaeule) then return end
+  local zurZielhilfe = false
+  if type(token) == "string" and UnitIsUnit then
+    local ok, ja = pcall(UnitIsUnit, token, "softinteract")
+    zurZielhilfe = ok and ja and true or false
+  end
+  if zurZielhilfe then Li.platteToken = token end
+  local guid = type(token) == "string" and UnitGUID and UnitGUID(token)
+  if guid and not geheim(guid) and (zurZielhilfe or not string.find(guid, "^Player")) then
+    local ok, p = pcall(C_NamePlate.GetNamePlateForUnit, token)
+    local verboten = ok and p and p.IsForbidden and p:IsForbidden()
+    protokoll(string.format("plakette neu %s %s zielhilfe=%s gefunden=%s verboten=%s", tostring(token), guid,
+      tostring(zurZielhilfe), tostring(ok and p ~= nil), tostring(verboten)))
+  end
+  Li:Aktualisieren()
+end)
 ns.Ereignis("NAME_PLATE_UNIT_REMOVED", neu)
 ns.Ereignis("LOOT_CLOSED", neu)
 ns.beimStart(function()
