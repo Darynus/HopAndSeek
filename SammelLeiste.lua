@@ -13,7 +13,7 @@ ns.SammelLeiste = G
 
 local BREITE, RAND, FUND = 250, 6, 18
 local MAX_FUNDE = 3
-local KOPF, GROSS, INFO, UNTEN = 18, 22, 16, 22
+local KOPF, GROSS, INFO, UNTEN, BERUF = 18, 22, 16, 22, 14
 local INNEN = BREITE - 2 * RAND - 8
 
 local function merken(f)
@@ -26,6 +26,15 @@ local function tooltip(self)
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
   GameTooltip:SetText(L.GATHER_BAR_TITLE, 1, 1, 1)
   if ns.Erfolge then ns.Erfolge:Tooltip(GameTooltip) end
+  -- Sammelberufe mit Stufe, rot am Ende der gelernten Stufe
+  local berufe = ns.Berufe and ns.Berufe.Liste() or {}
+  if #berufe > 0 then
+    GameTooltip:AddLine(" ")
+    for _, p in ipairs(berufe) do
+      local farbe = ns.Berufe.AmLimit(p) and F.fehler or F.text
+      GameTooltip:AddLine(string.format(L.SKILL_LEVEL, ns.Berufe.Name(p), p.rang, p.max), farbe[1], farbe[2], farbe[3])
+    end
+  end
   GameTooltip:AddLine(" ")
   GameTooltip:AddLine(L.GATHER_BAR_HELP, F.leise[1], F.leise[2], F.leise[3], true)
   GameTooltip:Show()
@@ -95,6 +104,13 @@ function G:Bauen()
   f.info:SetWidth(INNEN)
   f.info:SetJustifyH("LEFT")
   f.info:SetWordWrap(false)
+  -- Hinweis, wenn Kräuterkunde oder Bergbau einen Lehrer braucht (Berufe.lua)
+  f.beruf = S.schrift(f, "GameFontHighlightSmall", F.hinweis)
+  f.beruf:SetPoint("TOPLEFT", RAND + 4, -RAND - KOPF - GROSS - INFO - 2)
+  f.beruf:SetWidth(INNEN)
+  f.beruf:SetJustifyH("LEFT")
+  f.beruf:SetWordWrap(false)
+  f.beruf:Hide()
 
   -- Die wertvollsten Funde (oder die häufigsten, ohne Preise)
   for i = 1, MAX_FUNDE do
@@ -183,9 +199,16 @@ function G:Aktualisieren()
       return a.anzahl > b.anzahl
     end)
   end
+  -- Braucht ein Beruf den Lehrer, steht das unter der Infozeile, die Funde rücken nach unten
+  local warnung = ns.Berufe and ns.Berufe.Warnung()
+  f.beruf:SetShown(warnung ~= nil)
+  f.beruf:SetText(warnung or "")
+  local extra = warnung and BERUF or 0
   local n = 0
   for i, z in ipairs(self.funde) do
     local e = liste[i]
+    z:ClearAllPoints()
+    z:SetPoint("TOPLEFT", RAND + 4, -RAND - KOPF - GROSS - INFO - 4 - extra - (i - 1) * FUND)
     z:SetShown(e ~= nil)
     if e then
       n = n + 1
@@ -205,7 +228,7 @@ function G:Aktualisieren()
     f.heute:SetText(string.format(L.BAR_TODAY, r.heute, r.ziel))
     f.heute:SetTextColor(rgba(r.erreicht and F.erfolg or F.leise))
   end
-  f:SetHeight(2 * RAND + KOPF + GROSS + INFO + 4 + n * FUND + UNTEN)
+  f:SetHeight(2 * RAND + KOPF + GROSS + INFO + 4 + extra + n * FUND + UNTEN)
 end
 
 ns.beimStart(function()

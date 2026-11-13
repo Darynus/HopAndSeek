@@ -91,6 +91,7 @@ E.ABZEICHEN = {
 -- eine Seite im Sammelbuch blättert um. Nicht der Ton der Warteschlange (PVP_THROUGH_QUEUE), den
 -- hielte man draußen in der Welt für eine aufgegangene Warteschlange.
 local TOENE = {
+  beruf = "READY_CHECK",
   fund = "IG_ABILITY_PAGE_TURN",
   abzeichen = "UI_70_CHALLENGE_MODE_COMPLETE_NO_UPGRADE",
   rang = "UI_70_CHALLENGE_MODE_COMPLETE_NO_UPGRADE",
@@ -158,6 +159,7 @@ local function melden(m)
     E.Ton(m.art)
   end
 end
+E.Melden = melden
 
 local function rekordWert(art)
   local r = ns.db.erfolge.rekord[art]
@@ -433,6 +435,7 @@ function E:Einrichten()
   d.punkte = d.punkte + plus
 end
 
+ns.beimSammeln(function(id, menge, q, knotenArt) E:Beute(id, menge, q, knotenArt) end)
 ns.Ereignis("LOOT_CLOSED", fundeMelden)
 ns.beimStart(function()
   E:Einrichten()

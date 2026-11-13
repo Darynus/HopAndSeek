@@ -6,12 +6,17 @@
 --     alles an Handelswaren aus diesem Fenster mit, zum Beispiel Edelsteine aus einer Erzader.
 -- Gezählt wird erst, wenn ein Platz im Beutefenster leer wird, also wirklich genommen ist.
 -- Der Wert kommt aus Auctionator über dessen Schnittstelle für andere Add-ons (Auctionator.API.v1),
--- nur wenn Auctionator geladen ist. Nur lesen und anzeigen, nichts geschieht von selbst.
+-- sonst aus Midas (MidasAPI, MIT), nur wenn eins davon geladen ist. Andere Teile hängen sich mit
+-- ns.beimSammeln an (Journal, Sammelkarte). Nur lesen und anzeigen, nichts geschieht von selbst.
 local ADDON, ns = ...
 local L = ns.L
 
-local Z = { beute = {} }
+local Z = { beute = {}, hoerer = {} }
 ns.Sammeln = Z
+
+-- Wer mithören will, wenn etwas aus einem Kraut oder einer Ader genommen wird:
+-- f(Gegenstands-ID, Menge, Qualität, knotenArt), knotenArt nur beim ersten Gegenstand eines Knotens
+function ns.beimSammeln(f) table.insert(Z.hoerer, f) end
 
 local HANDELSWAREN, UK_KRAUT, UK_METALL = 7, 9, 7
 local NEUE_SITZUNG = 30 * 60   -- so lange nichts gesammelt: die nächste Sitzung beginnt
@@ -39,6 +44,7 @@ end
 function Z:Sitzung()
   local s = ns.db.sitzung
   if not s or not s.start or zeit() - (s.zuletzt or s.start) > NEUE_SITZUNG then
+    if s and s.start then Z:Bilanz(s) end
     s = { start = nil, zuletzt = nil, menge = {}, knoten = { kraut = 0, erz = 0 } }
     ns.db.sitzung = s
   end
@@ -46,9 +52,37 @@ function Z:Sitzung()
 end
 
 function Z:Neu()
+  local s = ns.db.sitzung
+  if s and s.start then Z:Bilanz(s) end
   ns.db.sitzung = nil
   self:Sitzung()
   ns.aktualisieren()
+end
+
+-- Bilanz einer beendeten Sitzung als Zeile im Chat: Dauer, Menge, Knoten, Wert, bester Fund.
+-- Gemerkt in ns.db.letzteSitzung für den Reiter Gathered.
+function Z:Bilanz(s)
+  local knoten = (s.knoten and ((s.knoten.kraut or 0) + (s.knoten.erz or 0))) or 0
+  if knoten == 0 then return end
+  local t = Z.Summe(s.menge)
+  local dauer = math.max(0, (s.zuletzt or s.start) - s.start)
+  local teile = { ns.dauer(dauer), Z.Text(t, knoten) }
+  if t.wert then
+    local w = string.format(L.GATHER_WORTH, ns.geld(t.wert))
+    if dauer >= 300 then w = w .. " " .. string.format(L.GATHER_WORTH_RATE, ns.geld(t.wert * 3600 / dauer)) end
+    table.insert(teile, w)
+  end
+  local text = string.format(L.SESSION_SUMMARY, table.concat(teile, ", "))
+  local best
+  for _, e in ipairs(t.liste) do
+    if e.wert and (not best or e.wert > best.wert) then best = e end
+  end
+  if best then
+    local name = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(best.id)
+    if name then text = text .. " " .. string.format(L.SESSION_BEST, name) end
+  end
+  ns.db.letzteSitzung = { text = text, ende = s.zuletzt or s.start }
+  ns.melde(text)
 end
 
 -- Beutefenster öffnet: Plätze mit Handelswaren aus einem Objekt der Welt merken
@@ -112,26 +146,41 @@ local function genommen(platz)
     s.knoten[Z.knoten] = (s.knoten[Z.knoten] or 0) + 1
     g.knoten[Z.knoten] = (g.knoten[Z.knoten] or 0) + 1
   end
-  -- Punkte, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Erfolge.lua). Ein Fehler dort darf das
-  -- Zählen nicht stören.
-  if ns.Erfolge then
-    local ok, fehler = pcall(ns.Erfolge.Beute, ns.Erfolge, b.id, b.menge, b.q, knotenNeu)
-    if not ok then ns.melde(string.format(L.ERR_EVENT, "Journal", tostring(fehler))) end
+  -- Journal (Punkte, Tagesziel, Rekorde, Abzeichen, Sammelbuch) und Sammelkarte hören mit. Ein
+  -- Fehler dort darf das Zählen nicht stören.
+  for _, f in ipairs(Z.hoerer) do
+    local ok, fehler = pcall(f, b.id, b.menge, b.q, knotenNeu)
+    if not ok then ns.melde(string.format(L.ERR_EVENT, "LOOT_SLOT_CLEARED", tostring(fehler))) end
   end
   ns.aktualisieren()
 end
 
--- Preis eines Gegenstands in Kupfer, nur über Auctionator. nil ohne Preis.
-function Z.Preis(itemID)
+-- Preisquellen: Auctionator (Auctionator.API.v1) und Midas (MidasAPI.GetFairPrice, ein fairer
+-- Marktpreis aus den Scans). Beide über ihre Schnittstellen für andere Add-ons.
+local function auctionator()
   local api = type(Auctionator) == "table" and type(Auctionator.API) == "table" and Auctionator.API.v1
-  if not (type(api) == "table" and api.GetAuctionPriceByItemID) then return nil end
-  local ok, preis = pcall(api.GetAuctionPriceByItemID, L.ADDON_NAME, itemID)
-  if ok and type(preis) == "number" and preis > 0 then return preis end
+  if type(api) == "table" and api.GetAuctionPriceByItemID then return api end
+end
+local function midas()
+  if type(MidasAPI) == "table" and type(MidasAPI.GetFairPrice) == "function" then return MidasAPI end
+end
+
+-- Preis eines Gegenstands in Kupfer, erst Auctionator, sonst Midas. nil ohne Preis.
+function Z.Preis(itemID)
+  local a = auctionator()
+  if a then
+    local ok, preis = pcall(a.GetAuctionPriceByItemID, L.ADDON_NAME, itemID)
+    if ok and type(preis) == "number" and preis > 0 then return preis end
+  end
+  local m = midas()
+  if m then
+    local ok, preis = pcall(m.GetFairPrice, itemID)
+    if ok and type(preis) == "number" and preis > 0 then return preis end
+  end
 end
 
 function Z.MitPreisen()
-  local api = type(Auctionator) == "table" and type(Auctionator.API) == "table" and Auctionator.API.v1
-  return type(api) == "table" and api.GetAuctionPriceByItemID ~= nil
+  return auctionator() ~= nil or midas() ~= nil
 end
 
 -- Zusammenfassung einer Liste { [ID] = Anzahl }: Kräuter, Erz und Stein (dazu Edelsteine und

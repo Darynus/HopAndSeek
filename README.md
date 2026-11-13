@@ -31,8 +31,10 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 
 - **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. The new Gathered tab lists every item.
 - **Gold per hour**: a small gathering window shows your gold per hour, how much you gathered and your best finds while you are out gathering.
-- **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour.
-- The count of this session sits under the tracking icon, the details are in its tooltip. A new session starts after 30 minutes without gathering, or with Start over.
+- **What it is worth**: with Auctionator or Midas installed, Hop & Seek shows the value of your haul, in total and per hour.
+- **Gathering spots on your world map**: every node you gather becomes a small pin with the icon of what grew there. After a few rounds you see the good routes. Works with OpenMap too.
+- **Time to train**: a reminder when Herbalism or Mining needs a trainer.
+- The count of this session sits under the tracking icon, the details are in its tooltip. A new session starts after 30 minutes without gathering, or with Start over, and a line in your chat sums up the last one.
 
 ## Make gathering a game
 
@@ -43,6 +45,7 @@ The Journal tab turns every trip into a little adventure:
 - **Records**: gold per hour, nodes in one session, your best haul and your longest session. Beat them and Hop & Seek lets you know.
 - **22 badges**, from First Find to Lotus Luck.
 - **Field guide**: every herb, ore, stone and gem you can gather in Forever, including the new ones like Rosecap, Bauxite and Torbernite. Fill it up!
+- **Compare with friends**: share your journal with your group with one click and see their ranks and records next to yours.
 - A small pop-up with a game sound tells you when you earn something. Prefer it quiet? Switch pop-ups off and get a chat line instead.
 
 ## Knows when to stop
@@ -76,6 +79,7 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 | `/hop mounted` | switch on every jump while mounted |
 | `/hop reset` | start a new gathering session |
 | `/hop journal` | open the journal: rank, daily goal, records, badges, field guide |
+| `/hop share` | share your journal with your group |
 | `/hop news` | show what is new |
 | `/hop debug` | show your tracking types and the self-check |
 | `/hop help` | list all commands |

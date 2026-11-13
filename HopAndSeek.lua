@@ -49,6 +49,10 @@ local STANDARD = {
   meldungen = true,     -- kleine Meldungen für Abzeichen, Rang, Rekorde, Funde (Meldung.lua)
   erfolgTon = true,     -- mit einem Ton des Spiels
   erfolge = {},         -- Rang, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Felder in Erfolge.lua)
+  karteZeigen = true,   -- Sammelstellen auf der Weltkarte (SammelKarte.lua)
+  knotenKarte = {},     -- [Karten-ID] = { { x, y, art, n, inhalt, zuletzt } }
+  berufGemeldet = {},   -- ["Name-Realm"] = { [Fertigkeitslinie] = Stufe, zu der gemeldet wurde }
+  freunde = {},         -- geteilte Journale der Gruppe (Teilen.lua)
   gesamt = { menge = {}, knoten = { kraut = 0, erz = 0 } },  -- alles bisher Gesammelte
   -- sitzung: laufende Sitzung des Sammelzählers
   -- probe: Ergebnis der Selbstprüfung { geht, gcd, mehrere, gesperrt }

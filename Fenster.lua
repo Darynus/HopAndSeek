@@ -120,7 +120,7 @@ local function bauenSammeln()
   f.rate = S.absatz(f, B, F.leise)
   f.rate:SetPoint("TOPLEFT", 0, -44)
 
-  f.liste = S.liste(f, B, 24 * 6, 24, function(l)
+  f.liste = S.liste(f, B, 24 * 5, 24, function(l)
     local z = S.zeile(l)
     z.icon = z:CreateTexture(nil, "ARTWORK")
     z.icon:SetSize(20, 20)
@@ -146,26 +146,32 @@ local function bauenSammeln()
   end)
   f.liste:SetPoint("TOPLEFT", 0, -72)
 
-  S.ueberschrift(f, L.GATHER_TOTAL):SetPoint("TOPLEFT", 0, -230)
+  S.ueberschrift(f, L.GATHER_TOTAL):SetPoint("TOPLEFT", 0, -206)
   f.gesamt = S.absatz(f, B, F.text, "GameFontHighlight")
-  f.gesamt:SetPoint("TOPLEFT", 0, -250)
+  f.gesamt:SetPoint("TOPLEFT", 0, -226)
 
   f.zaehlen = S.haken(f, B, L.SET_GATHER, L.SET_GATHER_HELP, function(_, an)
     ns.db.zaehlen = an
     ns.aktualisieren()
   end)
-  f.zaehlen:SetPoint("TOPLEFT", 0, -284)
+  f.zaehlen:SetPoint("TOPLEFT", 0, -260)
   f.zeigen = S.haken(f, B, L.SET_GATHER_ICON, L.SET_GATHER_ICON_HELP, function(_, an)
     ns.db.zaehlerZeigen = an
     ns.aktualisieren()
   end)
-  f.zeigen:SetPoint("TOPLEFT", 0, -308)
+  f.zeigen:SetPoint("TOPLEFT", 0, -284)
   f.leiste = S.haken(f, B, L.SET_GATHER_BAR, L.SET_GATHER_BAR_HELP, function(_, an)
     ns.db.sammelLeisteZeigen = an
     if an then ns.SammelLeiste.zuBis = nil end
     ns.aktualisieren()
   end)
-  f.leiste:SetPoint("TOPLEFT", 0, -332)
+  f.leiste:SetPoint("TOPLEFT", 0, -308)
+  f.karte = S.haken(f, B, L.SET_GATHER_MAP, L.SET_GATHER_MAP_HELP, function(_, an)
+    ns.db.karteZeigen = an
+    if ns.SammelKarte then ns.SammelKarte:Zeichnen(true) end
+    ns.aktualisieren()
+  end)
+  f.karte:SetPoint("TOPLEFT", 0, -332)
   f.hinweis = S.absatz(f, B, F.leise)
   f.hinweis:SetPoint("TOPLEFT", 0, -362)
 
@@ -174,7 +180,8 @@ local function bauenSammeln()
     self.seit:SetText(st.start and string.format(L.GATHER_SINCE, date("%H:%M", st.start)) or "")
     if st.alle == 0 then
       self.summe:SetText(L.GATHER_NONE)
-      self.rate:SetText("")
+      -- Zuletzt beendete Sitzung, solange noch keine neue läuft
+      self.rate:SetText(ns.db.letzteSitzung and ns.db.letzteSitzung.text or "")
     else
       self.summe:SetText(Z.Text(st))
       local teile = {}
@@ -201,6 +208,8 @@ local function bauenSammeln()
     self.zaehlen:Setzen(ns.db.zaehlen)
     self.zeigen:Setzen(ns.db.zaehlerZeigen)
     self.leiste:Setzen(ns.db.sammelLeisteZeigen)
+    self.karte:Setzen(ns.db.karteZeigen)
+    self.karte.menge:SetText(string.format(L.GATHER_MAP_COUNT, ns.SammelKarte and ns.SammelKarte.Anzahl() or 0))
     self.hinweis:SetText(Z.MitPreisen() and L.GATHER_HELP or (L.GATHER_HELP .. " " .. L.GATHER_NO_PRICES))
   end
 end
@@ -307,35 +316,68 @@ local function bauenJournal()
   -- Rang: Titel, Punkte und Balken bis zum nächsten
   f.rang = S.schrift(f, "GameFontNormalLarge")
   f.rang:SetPoint("TOPLEFT", 0, 0)
+  f.teilen = S.textKnopf(f, L.SHARE_BUTTON, 70, function() ns.Teilen:Senden() end)
+  f.teilen:SetHeight(20)
+  f.teilen:SetPoint("TOPRIGHT", 0, 3)
+  S.tooltip(f.teilen, L.SHARE_BUTTON, L.SHARE_BUTTON_HELP)
   f.punkte = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  f.punkte:SetPoint("TOPRIGHT", 0, -4)
+  f.punkte:SetPoint("RIGHT", f.teilen, "LEFT", -8, 0)
   f.balken = S.balken(f, B, 14, true)
   f.balken:SetPoint("TOPLEFT", 0, -24)
   S.tooltip(f.balken, L.JOURNAL_POINTS, L.JOURNAL_POINTS_HELP)
 
+  -- Freunde: was die Gruppe zuletzt geteilt hat (Teilen.lua), Einzelheiten im Tooltip
+  f.freundeFeld = CreateFrame("Frame", nil, f)
+  f.freundeFeld:SetSize(B, 14)
+  f.freundeFeld:SetPoint("TOPLEFT", 0, -42)
+  f.freundeFeld:EnableMouse(true)
+  f.freunde = S.schrift(f.freundeFeld, "GameFontHighlightSmall", F.leise)
+  f.freunde:SetPoint("LEFT", 0, 0)
+  f.freunde:SetWidth(B)
+  f.freunde:SetJustifyH("LEFT")
+  f.freunde:SetWordWrap(false)
+  f.freundeFeld:SetScript("OnEnter", function(self)
+    local liste = ns.Teilen.Freunde()
+    local l = F.leise
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:SetText(L.FRIENDS_TITLE, 1, 0.82, 0)
+    if #liste == 0 then GameTooltip:AddLine(L.FRIENDS_NONE, l[1], l[2], l[3], true) end
+    for _, fr in ipairs(liste) do
+      GameTooltip:AddLine(" ")
+      GameTooltip:AddDoubleLine(fr.name, string.format(L.RANK_TITLE, fr.rang, fr.rangName), 1, 1, 1, F.akzent[1], F.akzent[2], F.akzent[3])
+      GameTooltip:AddLine(string.format(L.FRIEND_POINTS, E.Zahl(fr.punkte), fr.serie, fr.serieBest), l[1], l[2], l[3])
+      GameTooltip:AddLine(string.format(L.FRIEND_KINDS, fr.arten, fr.abzeichen), l[1], l[2], l[3])
+      if (fr.gold or 0) > 0 then GameTooltip:AddLine(string.format(L.FRIEND_GOLD, ns.geld(fr.gold)), l[1], l[2], l[3]) end
+      if (fr.knoten or 0) > 0 then GameTooltip:AddLine(string.format(L.FRIEND_NODES, fr.knoten), l[1], l[2], l[3]) end
+      GameTooltip:AddLine(string.format(L.FRIEND_SHARED, date("%Y-%m-%d %H:%M", fr.zeit or 0)), l[1], l[2], l[3])
+    end
+    GameTooltip:Show()
+  end)
+  f.freundeFeld:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
   -- Heute: Knoten zum Tagesziel, Serie, Wahl des Ziels
-  S.ueberschrift(f, L.JOURNAL_TODAY):SetPoint("TOPLEFT", 0, -50)
+  S.ueberschrift(f, L.JOURNAL_TODAY):SetPoint("TOPLEFT", 0, -62)
   f.tag = S.balken(f, 110, 12, true)
-  f.tag:SetPoint("TOPLEFT", 0, -70)
+  f.tag:SetPoint("TOPLEFT", 0, -82)
   S.tooltip(f.tag, L.JOURNAL_TODAY, L.JOURNAL_GOAL_HELP)
   f.tagText = S.schrift(f, "GameFontHighlightSmall", F.text)
   f.tagText:SetPoint("LEFT", f.tag, "RIGHT", 8, 0)
   f.serie = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  f.serie:SetPoint("TOPLEFT", 0, -88)
+  f.serie:SetPoint("TOPLEFT", 0, -100)
   local ziel = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  ziel:SetPoint("TOPLEFT", 0, -110)
+  ziel:SetPoint("TOPLEFT", 0, -122)
   ziel:SetText(L.JOURNAL_GOAL)
   local optionen = {}
   for _, n in ipairs(E.ZIELE) do table.insert(optionen, { wert = n, text = tostring(n), hilfe = L.JOURNAL_GOAL_HELP }) end
   f.ziel = S.segmente(f, HALB - 44, optionen, function(n) E:ZielSetzen(n) end)
-  f.ziel:SetPoint("TOPLEFT", 34, -105)
+  f.ziel:SetPoint("TOPLEFT", 34, -117)
 
   -- Rekorde
   local rx = HALB + 12
-  S.ueberschrift(f, L.JOURNAL_RECORDS):SetPoint("TOPLEFT", rx, -50)
+  S.ueberschrift(f, L.JOURNAL_RECORDS):SetPoint("TOPLEFT", rx, -62)
   f.rekorde = {}
   for i, art in ipairs({ "gold", "knoten", "wert", "dauer" }) do
-    local y = -70 - (i - 1) * 16
+    local y = -82 - (i - 1) * 16
     local name = S.schrift(f, "GameFontHighlightSmall", F.leise)
     name:SetPoint("TOPLEFT", rx, y)
     name:SetText(L.RECORDS[art])
@@ -353,20 +395,20 @@ local function bauenJournal()
     f.zeige = w
     f:Aktualisieren()
   end)
-  f.ansicht:SetPoint("TOPLEFT", 0, -134)
+  f.ansicht:SetPoint("TOPLEFT", 0, -146)
   f.meldungen = S.haken(f, 80, L.SET_POPUPS, L.SET_POPUPS_HELP, function(_, an)
     ns.db.meldungen = an
     ns.aktualisieren()
   end)
-  f.meldungen:SetPoint("TOPLEFT", B - 152, -134)
+  f.meldungen:SetPoint("TOPLEFT", B - 152, -146)
   f.ton = S.haken(f, 64, L.SET_POPUP_SOUND, L.SET_POPUP_SOUND_HELP, function(_, an)
     ns.db.erfolgTon = an
     ns.aktualisieren()
   end)
-  f.ton:SetPoint("TOPLEFT", B - 64, -134)
+  f.ton:SetPoint("TOPLEFT", B - 64, -146)
 
-  local Y, ZEILE = -162, 38
-  f.liste = S.liste(f, B, ZEILE * 6, ZEILE, function(l)
+  local Y, ZEILE = -174, 38
+  f.liste = S.liste(f, B, ZEILE * 5, ZEILE, function(l)
     local z = S.zeile(l)
     z.icon = z:CreateTexture(nil, "ARTWORK")
     z.icon:SetSize(30, 30)
@@ -415,6 +457,17 @@ local function bauenJournal()
     local st = E:Stand()
     self.rang:SetText(string.format(L.RANK_TITLE, st.rang, st.name))
     self.punkte:SetText(string.format(L.JOURNAL_POINTS_TEXT, E.Zahl(st.punkte)))
+    local freunde = ns.Teilen.Freunde()
+    if #freunde == 0 then
+      self.freunde:SetText(L.FRIENDS_NONE)
+    else
+      local teile = {}
+      for i, fr in ipairs(freunde) do
+        if i > 3 then break end
+        table.insert(teile, string.format(L.FRIEND_LINE, fr.name, fr.rangName, E.Zahl(fr.punkte)))
+      end
+      self.freunde:SetText(table.concat(teile, "   "))
+    end
     self.balken:Setzen((st.punkte - st.von) / (st.bis - st.von),
       string.format(L.RANK_TO_NEXT, E.Zahl(st.bis - st.punkte), st.naechster))
     self.tag:Setzen(st.heute / st.ziel, nil, st.erreicht and F.erfolg or F.akzent)

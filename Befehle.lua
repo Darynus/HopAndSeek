@@ -10,6 +10,7 @@ local BEFEHLE = {
   { "jump | double | mounted", L.CMD_MODE },
   { "reset", L.CMD_RESET },
   { "journal", L.CMD_JOURNAL },
+  { "share", L.CMD_SHARE },
   { "news", L.CMD_NEWS },
   { "debug", L.CMD_DEBUG },
   { "help", L.CMD_HELP },
@@ -68,6 +69,8 @@ SlashCmdList.HOPANDSEEK = function(eingabe)
     ns.melde(L.MSG_GATHER_RESET)
   elseif wort == "journal" then
     ns.Fenster:Zeigen("journal")
+  elseif wort == "share" then
+    ns.Teilen:Senden()
   elseif wort == "news" then
     ns.Neuigkeiten:Umschalten()
   elseif wort == "debug" then

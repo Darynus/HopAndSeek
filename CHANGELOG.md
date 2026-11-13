@@ -4,7 +4,7 @@
 
 - **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. See the new Gathered tab. The count of this session sits under the tracking icon, the details are in its tooltip.
 - **Gathering window**: a small window like the bar of Campfire Buddy shows your gold per hour, how much you gathered and your best finds. It appears with the first node of a session and hides when the session ends. Drag it anywhere, right-click opens the Gathered tab.
-- **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour.
+- **What it is worth**: with Auctionator or Midas installed, Hop & Seek shows the value of your haul, in total and per hour.
 - **Journal**: a new tab that makes gathering a game.
   - Every node earns seeker points, new kinds and uncommon finds earn more. Your points make your rank, from Wanderer to Legend of the Wilds.
   - Set a daily goal (10, 25, 50 or 100 nodes) and keep your streak going day after day.
@@ -13,6 +13,10 @@
   - A field guide with every herb, ore, stone and gem you can gather in Forever, the new ones included. Grey ones are still out there.
   - A small pop-up with a game sound tells you when you earn something. Click it to open the journal, or switch pop-ups off for a chat line instead.
   - The gathering window shows your rank and today's nodes, its tooltip shows your streak and records. `/hop journal` opens the tab.
+  - **Share** your journal with your group with one click and compare ranks and records with your friends. Also `/hop share`.
+- **Gathering spots on your world map**: every node you gather becomes a small pin with the icon of what grew there, green for herbs and brown for ore. Spots close together count as one, caves count for their zone. Works with OpenMap, right-click removes a pin.
+- **Time to train**: Hop & Seek tells you once when Herbalism or Mining reaches the limit of your rank, and the gathering window reminds you until you have visited a trainer.
+- **Session summary**: when a session ends, a line in your chat sums it up: time, nodes, value and your best find.
 - A new session starts by itself after 30 minutes without gathering, or with Start over and `/hop reset`.
 - **What's new** window once after each update. `/hop news` shows it again.
 - Square minimaps: the minimap button follows the square edge.
