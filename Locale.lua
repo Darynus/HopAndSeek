@@ -287,6 +287,21 @@ L.CMD_RESET = "start a new gathering session"
 L.CMD_JOURNAL = "open the journal: rank, daily goal, records, badges, field guide"
 L.CMD_SHARE = "share your journal with your group"
 L.CMD_PILLAR = "switch the light pillar on or off, or pick its look"
+L.CMD_NEXT = "guide you to the nearest herb or ore vein you gathered before, stop ends the guide"
+
+-- Wegweiser zur nächsten bekannten Stelle (Wegweiser.lua)
+L.NEXT_BUTTON = "Next spot"
+L.NEXT_BUTTON_HELP = "Left-click: the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot. Right-click: guide off.\n\nAlso /hop next, or a key under Esc > Options > Keybindings > AddOns."
+L.NEXT_SPOT = "Next spot: %s, %d yards away. Follow the marker."
+L.NEXT_SPOT_NO_DISTANCE = "Next spot: %s. Follow the marker."
+L.NEXT_NONE = "No other gathering spot known on this map yet. Your map fills up as you gather."
+L.NEXT_NO_OTHER = "No other spot known on this map. The marker stays where it is."
+L.NEXT_LAST = "That was the last known spot on this map for now. Guide off."
+L.NEXT_NO_POSITION = "No map position here, for example in a dungeon."
+L.NEXT_UNSUPPORTED = "The game does not allow a map pin here."
+L.NEXT_OFF = "Guide off."
+L.BIND_NEXT = "Next gathering spot"
+L.BIND_NEXT_OFF = "Gathering guide off"
 L.GATHER_LEATHER_ONE = "1 leather or hide"
 L.GATHER_LEATHER = "%d leather and hides"
 L.GATHER_CREATURE_ONE = "1 creature"
@@ -327,6 +342,11 @@ L.NEWS_AGAIN = "Show this after updates"
 L.NEWS_AGAIN_HELP = "A short window once after Hop & Seek was updated. /hop news shows it again."
 L.NEWS_OK = "Got it"
 L.NEWS = {
+  { version = "1.2.1", zeilen = {
+    "Next spot: click the pin in the gathering window, type /hop next or press your key, and the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot.",
+    "Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count. Right-click the pin to end the guide.",
+    "Set a key under Esc > Options > Keybindings > AddOns > Hop & Seek.",
+  } },
   { version = "1.2.0", zeilen = {
     "Gathering counter: herbs, ore, stone and gems you loot from nodes, per session and all time, with nodes and an amount per hour. See the new Gathered tab.",
     "A small gathering window shows your gold per hour and your best finds while you gather. With Auctionator, Hop & Seek knows what your haul is worth.",

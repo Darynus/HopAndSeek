@@ -1,5 +1,11 @@
 # Hop & Seek changelog
 
+## 1.2.1 (2026-11-13)
+
+- **Next spot**: the pin in the gathering window, `/hop next` or a key binding sets the game's own marker on the nearest herb or ore vein you gathered before, with the distance on your screen. Gather there, and the marker moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count. Right-click the pin or `/hop next stop` ends the guide, your own map pin stays untouched once you set a new one.
+- **Key bindings**: Esc > Options > Keybindings > AddOns > Hop & Seek.
+- The light pillar does less work in busy places.
+
 ## 1.2.0 (2026-11-13)
 
 - **Gathering counter**: herbs, ore, stone and gems you loot from nodes, and the leather and hides you skin, per session and all time, with the number of nodes and an amount per hour. See the new Gathered tab. The count of this session sits under the tracking icon, the details are in its tooltip.

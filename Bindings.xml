@@ -1,0 +1,7 @@
+<!-- Tasten für Hop & Seek (Esc > Optionen > Tastaturbelegung > AddOns). Ein Tastendruck ist ein Klick
+     auf den unsichtbaren Knopf des Wegweisers (Wegweiser.lua): links zur nächsten bekannten
+     Sammelstelle, rechts Wegweiser aus. -->
+<Bindings>
+	<Binding name="CLICK HopAndSeekNextSpot:LeftButton" header="HOPANDSEEK" category="ADDONS"/>
+	<Binding name="CLICK HopAndSeekNextSpot:RightButton" category="ADDONS"/>
+</Bindings>
