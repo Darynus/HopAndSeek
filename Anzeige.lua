@@ -44,7 +44,7 @@ local function tooltip(f)
     if st.alle > 0 then
       GameTooltip:AddLine(" ")
       GameTooltip:AddLine(L.GATHER_SESSION, 1, 0.82, 0)
-      GameTooltip:AddLine(string.format(L.GATHER_LINE, st.kraut, st.erz + st.rest, st.knoten), 1, 1, 1, true)
+      GameTooltip:AddLine(ns.Sammeln.Text(st), 1, 1, 1, true)
       if st.proStunde then
         GameTooltip:AddLine(string.format(L.GATHER_RATE, st.proStunde), F.leise[1], F.leise[2], F.leise[3])
       end
@@ -54,6 +54,11 @@ local function tooltip(f)
         GameTooltip:AddLine(wert, F.erfolg[1], F.erfolg[2], F.erfolg[3])
       end
     end
+  end
+  -- Rang und Tagesziel (Erfolge.lua)
+  if ns.db.zaehlen and ns.Erfolge and ns.db.erfolge and ns.db.erfolge.punkte then
+    GameTooltip:AddLine(" ")
+    ns.Erfolge:Tooltip(GameTooltip, true)
   end
   GameTooltip:AddLine(" ")
   GameTooltip:AddLine(L.ICON_TOOLTIP_HELP, F.leise[1], F.leise[2], F.leise[3], true)

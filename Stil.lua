@@ -445,6 +445,36 @@ function S.kopf(parent, untertitel)
   return 46
 end
 
+-- Fortschrittsbalken, flach: dunkler Grund mit feinem Rand, Füllung in der Akzentfarbe, Text in der
+-- Mitte. Setzen(anteil von 0 bis 1, text, farbe). Mit maus nimmt er die Maus an (für Tooltips).
+function S.balken(parent, breite, hoehe, maus)
+  local b = CreateFrame("Frame", nil, parent)
+  b:SetSize(breite, hoehe)
+  if maus then b:EnableMouse(true) end
+  b.rand = b:CreateTexture(nil, "BACKGROUND", nil, -1)
+  b.rand:SetPoint("TOPLEFT", -1, 1)
+  b.rand:SetPoint("BOTTOMRIGHT", 1, -1)
+  b.rand:SetColorTexture(F.rand[1], F.rand[2], F.rand[3], 0.35)
+  b.grund = b:CreateTexture(nil, "BACKGROUND")
+  b.grund:SetAllPoints()
+  b.grund:SetColorTexture(0, 0, 0, 0.65)
+  b.fuellung = b:CreateTexture(nil, "ARTWORK")
+  b.fuellung:SetPoint("TOPLEFT")
+  b.fuellung:SetPoint("BOTTOMLEFT")
+  b.text = S.schrift(b, "GameFontHighlightSmall", F.text)
+  b.text:SetPoint("CENTER", 0, 0)
+  function b:Setzen(anteil, text, farbe)
+    anteil = math.max(0, math.min(1, anteil or 0))
+    self.anteil = anteil
+    self.fuellung:SetShown(anteil > 0)
+    self.fuellung:SetWidth(math.max(1, breite * anteil))
+    self.fuellung:SetColorTexture(rgba(farbe or F.akzent))
+    self.text:SetText(text or "")
+  end
+  b:Setzen(0)
+  return b
+end
+
 function S.schatten(parent)
   local t = parent:CreateTexture(nil, "BACKGROUND", nil, -8)
   t:SetPoint("TOPLEFT", -4, 4)

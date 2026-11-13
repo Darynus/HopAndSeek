@@ -13,7 +13,10 @@ HopAndSeek.lua
 Stil.lua
 Suche.lua
 Sammeln.lua
+Erfolge.lua
+Meldung.lua
 Anzeige.lua
+SammelLeiste.lua
 Fenster.lua
 Minimap.lua
 Neuigkeiten.lua

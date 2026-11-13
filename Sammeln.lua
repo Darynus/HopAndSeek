@@ -76,13 +76,16 @@ local function lesen()
     local vomObjekt = okQ and ((ohneQuelle and not gegner)
       or (type(guid) == "string" and not geheim(guid) and string.find(guid, "^GameObject") ~= nil))
     local okL, link = pcall(GetLootSlotLink, platz)
-    local okI, _, _, menge = pcall(GetLootSlotInfo, platz)
+    local okI, _, _, menge, _, qualitaet = pcall(GetLootSlotInfo, platz)
     if vomObjekt and okL and okI and type(link) == "string" and not geheim(link) then
       local id = tonumber(string.match(link, "item:(%d+)"))
       local k = id and klasse(id)
       if id and k == HANDELSWAREN then
         local art = Z.Art(id)
-        Z.beute[platz] = { id = id, menge = (type(menge) == "number" and menge > 0) and menge or 1 }
+        if geheim(qualitaet) or type(qualitaet) ~= "number" then
+          qualitaet = C_Item and C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(id)
+        end
+        Z.beute[platz] = { id = id, menge = (type(menge) == "number" and menge > 0) and menge or 1, q = qualitaet }
         -- Kraut hat Vorrang: Kräuter wachsen nicht in Erzadern, Steine liegen aber auch mal dabei
         if art == "kraut" or (art == "erz" and Z.knoten ~= "kraut") then Z.knoten = art end
       end
@@ -102,10 +105,18 @@ local function genommen(platz)
   s.menge[b.id] = (s.menge[b.id] or 0) + b.menge
   local g = ns.db.gesamt
   g.menge[b.id] = (g.menge[b.id] or 0) + b.menge
+  local knotenNeu
   if not Z.gezaehlt then
     Z.gezaehlt = true
+    knotenNeu = Z.knoten
     s.knoten[Z.knoten] = (s.knoten[Z.knoten] or 0) + 1
     g.knoten[Z.knoten] = (g.knoten[Z.knoten] or 0) + 1
+  end
+  -- Punkte, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Erfolge.lua). Ein Fehler dort darf das
+  -- Zählen nicht stören.
+  if ns.Erfolge then
+    local ok, fehler = pcall(ns.Erfolge.Beute, ns.Erfolge, b.id, b.menge, b.q, knotenNeu)
+    if not ok then ns.melde(string.format(L.ERR_EVENT, "Journal", tostring(fehler))) end
   end
   ns.aktualisieren()
 end
@@ -142,6 +153,19 @@ function Z.Summe(menge)
   return t
 end
 
+-- "52 herbs, 3 ore, stone and gems from 23 nodes": Arten ohne Fund fallen weg, Einzahl stimmt
+-- ("from 1 node", Patricks Screenshot 13. Nov)
+function Z.Text(t, knoten)
+  knoten = knoten or t.knoten or 0
+  local teile = {}
+  if t.kraut > 0 then table.insert(teile, t.kraut == 1 and L.GATHER_HERB_ONE or string.format(L.GATHER_HERBS, t.kraut)) end
+  local erz = t.erz + t.rest
+  if erz > 0 then table.insert(teile, erz == 1 and L.GATHER_ORE_ONE or string.format(L.GATHER_ORE, erz)) end
+  if #teile == 0 then return L.GATHER_NOTHING end
+  return string.format(L.GATHER_FROM, table.concat(teile, ", "),
+    knoten == 1 and L.GATHER_NODE_ONE or string.format(L.GATHER_NODES, knoten))
+end
+
 -- Laufende Sitzung mit Rate: Gegenstände und Wert pro Stunde. Unter 5 Minuten keine Rate.
 function Z:Stand()
   local s = self:Sitzung()
@@ -155,6 +179,15 @@ function Z:Stand()
     if t.wert then t.wertProStunde = t.wert * 3600 / dauer end
   end
   return t
+end
+
+-- Dauer als Text: "42 min", ab einer Stunde "1:07 h"
+function ns.dauer(sekunden)
+  sekunden = math.max(0, math.floor(sekunden or 0))
+  if sekunden >= 3600 then
+    return string.format(L.GATHER_BAR_HOURS, math.floor(sekunden / 3600), math.floor(sekunden / 60) % 60)
+  end
+  return string.format(L.GATHER_BAR_MINUTES, math.floor(sekunden / 60))
 end
 
 -- Geld als kurzer Text: "3g 20s", unter einem Gold "45s 12c"

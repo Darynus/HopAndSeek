@@ -30,8 +30,20 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 ## Count what you gather
 
 - **Gathering counter**: herbs, ore, stone and gems you loot from nodes, per session and all time, with the number of nodes and an amount per hour. The new Gathered tab lists every item.
+- **Gold per hour**: a small gathering window shows your gold per hour, how much you gathered and your best finds while you are out gathering.
 - **What it is worth**: with Auctionator installed, Hop & Seek shows the value of your haul, in total and per hour.
 - The count of this session sits under the tracking icon, the details are in its tooltip. A new session starts after 30 minutes without gathering, or with Start over.
+
+## Make gathering a game
+
+The Journal tab turns every trip into a little adventure:
+
+- **Seeker points and ranks**: every node earns points, new kinds and uncommon finds earn more. Climb from Wanderer to Legend of the Wilds.
+- **Daily goal and streak**: pick 10, 25, 50 or 100 nodes a day and keep your streak going.
+- **Records**: gold per hour, nodes in one session, your best haul and your longest session. Beat them and Hop & Seek lets you know.
+- **22 badges**, from First Find to Lotus Luck.
+- **Field guide**: every herb, ore, stone and gem you can gather in Forever, including the new ones like Rosecap, Bauxite and Torbernite. Fill it up!
+- A small pop-up with a game sound tells you when you earn something. Prefer it quiet? Switch pop-ups off and get a chat line instead.
 
 ## Knows when to stop
 
@@ -63,6 +75,7 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 | `/hop double` | switch on a double jump |
 | `/hop mounted` | switch on every jump while mounted |
 | `/hop reset` | start a new gathering session |
+| `/hop journal` | open the journal: rank, daily goal, records, badges, field guide |
 | `/hop news` | show what is new |
 | `/hop debug` | show your tracking types and the self-check |
 | `/hop help` | list all commands |

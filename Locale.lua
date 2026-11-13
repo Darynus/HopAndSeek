@@ -30,6 +30,7 @@ L.TRACK_OTHER = "Tracking %d"
 -- Reiter
 L.TAB_STATUS = "Status"
 L.TAB_GATHERED = "Gathered"
+L.TAB_JOURNAL = "Journal"
 L.TAB_SETTINGS = "Settings"
 L.TAB_HELP = "Help"
 
@@ -104,7 +105,27 @@ L.GATHER_SESSION = "This Session"
 L.GATHER_TOTAL = "All Time"
 L.GATHER_SINCE = "since %s"
 L.GATHER_NONE = "Nothing gathered yet. Herbs, ore, stone and gems from nodes count here."
-L.GATHER_LINE = "%d herbs, %d ore, stone and gems from %d nodes"
+L.GATHER_HERB_ONE = "1 herb"
+L.GATHER_HERBS = "%d herbs"
+L.GATHER_ORE_ONE = "1 ore, stone or gem"
+L.GATHER_ORE = "%d ore, stone and gems"
+L.GATHER_FROM = "%s from %s"
+L.GATHER_NODE_ONE = "1 node"
+L.GATHER_NODES = "%d nodes"
+L.GATHER_NOTHING = "nothing yet"
+L.GATHER_BAR_TITLE = "Gathering"
+L.GATHER_BAR_HELP = "This gathering session. Drag to move, right-click opens the Gathered tab."
+L.GATHER_BAR_CLOSE = "Hide"
+L.GATHER_BAR_CLOSE_HELP = "Hides this window until your next gathering session."
+L.GATHER_BAR_GOLD_RATE = "%s per hour"
+L.GATHER_BAR_WORTH = "Worth %s so far"
+L.GATHER_BAR_NO_VALUE = "No prices yet, scan the auction house"
+L.GATHER_BAR_NO_PRICES = "Gold per hour: install Auctionator"
+L.GATHER_BAR_MEASURING = "per hour after 5 min"
+L.GATHER_BAR_HOURS = "%d:%02d h"
+L.GATHER_BAR_MINUTES = "%d min"
+L.SET_GATHER_BAR = "Show the gathering window"
+L.SET_GATHER_BAR_HELP = "A small window with gold per hour and your best finds while you gather. It hides when the session ends."
 L.GATHER_RATE = "%.0f per hour"
 L.GATHER_WORTH = "worth %s"
 L.GATHER_WORTH_RATE = "(%s per hour)"
@@ -119,6 +140,83 @@ L.SET_GATHER_ICON_HELP = "A small number with everything you gathered this sessi
 L.GOLD_SUFFIX = "g"
 L.SILVER_SUFFIX = "s"
 L.COPPER_SUFFIX = "c"
+
+-- Journal: Rang, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Erfolge.lua, Meldung.lua)
+L.RANKS = { "Wanderer", "Forager", "Seeker", "Pathfinder", "Prospector", "Wildwalker", "Trailblazer",
+  "Master Seeker", "Grand Seeker", "Legend of the Wilds" }
+L.RANK_MORE = "%s %d"
+L.RANK_TITLE = "Rank %d: %s"
+L.RANK_TO_NEXT = "%s points to %s"
+L.JOURNAL_POINTS_TEXT = "%s points"
+L.JOURNAL_POINTS = "Seeker points"
+L.JOURNAL_POINTS_HELP = "Every node gives 10 points, a new kind for your field guide 50, an uncommon find 15 and your daily goal 100. Your points make your rank. All characters of your account count together."
+L.JOURNAL_TODAY = "Today"
+L.TODAY_NODES = "%d of %d nodes today"
+L.STREAK_ONE = "Streak: 1 day"
+L.STREAK_DAYS = "Streak: %d days"
+L.STREAK_NONE = "Reach your goal to start a streak"
+L.STREAK_BEST = "%s (best %d)"
+L.JOURNAL_GOAL = "Goal"
+L.JOURNAL_GOAL_HELP = "Your daily goal in nodes, for all your characters together. Reach it on days in a row to build a streak."
+L.JOURNAL_RECORDS = "Records"
+L.RECORDS = { gold = "Gold per hour", knoten = "Nodes in one session", wert = "Best haul", dauer = "Longest session" }
+L.RECORD_NONE = "none yet"
+L.RECORD_NEEDS_PRICES = "needs Auctionator"
+L.JOURNAL_BADGES = "Badges"
+L.JOURNAL_BADGES_COUNT = "Badges %d/%d"
+L.JOURNAL_BADGES_HELP = "Milestones for gathering. Hover a badge to see what it takes."
+L.JOURNAL_BOOK = "Field guide"
+L.JOURNAL_BOOK_COUNT = "Field guide %d/%d"
+L.JOURNAL_BOOK_HELP = "Every herb, ore, stone and gem you can gather in Forever. Grey ones are still out there."
+L.JOURNAL_MINUTES_OF = "%d / %d min"
+L.BOOK_GROUPS = { kraut = "Herbs", erz = "Ore and stone", edel = "Gems and more" }
+L.BOOK_GROUP = "%s  %d/%d"
+L.BOOK_FOUND = "Gathered %s, first found %s"
+L.BOOK_MISSING = "Not found yet"
+L.BADGE_EARNED = "Earned %s"
+L.BADGE_NEEDS_PRICES = "Needs Auctionator for prices."
+L.SET_POPUPS = "Pop-ups"
+L.SET_POPUPS_HELP = "A small pop-up at the top of the screen for new badges, ranks, records, finds and your daily goal. Off: a line in the chat instead."
+L.SET_POPUP_SOUND = "Sound"
+L.SET_POPUP_SOUND_HELP = "Plays a short game sound with each pop-up."
+L.TOAST_HELP = "Left-click opens the journal, right-click closes this."
+L.TOAST_BADGE = "Badge earned"
+L.TOAST_RANK = "New rank"
+L.TOAST_RANK_NEXT = "Next: %s at %s points"
+L.TOAST_RECORD = "New record"
+L.TOAST_RECORD_OLD = "Old best: %s"
+L.RECORD_NODES_TEXT = "%d nodes in one session"
+L.RECORD_HAUL_TEXT = "A haul worth %s"
+L.TOAST_DAILY = "Daily goal reached"
+L.TOAST_FIND = "New find"
+L.TOAST_FINDS = "%d new finds"
+L.TOAST_FIND_SUB = "Field guide %d/%d"
+L.BAR_RANK = "%s  %s/%s"
+L.BAR_TODAY = "Today %d/%d"
+L.BADGES = {
+  knoten1 = { "First Find", "Gather your first herb or ore node." },
+  knoten100 = { "Hundred Hops", "Gather 100 nodes." },
+  knoten500 = { "Seasoned Seeker", "Gather 500 nodes." },
+  knoten1000 = { "Thousand Hops", "Gather 1,000 nodes." },
+  knoten5000 = { "Nothing Escapes You", "Gather 5,000 nodes." },
+  kraut250 = { "Green Thumb", "Gather 250 herb nodes." },
+  erz250 = { "Rock Solid", "Gather 250 ore nodes." },
+  selten1 = { "Shiny!", "Find something uncommon in a node, like a gem or silver ore." },
+  selten50 = { "Treasure Hunter", "Find 50 uncommon or better items in nodes." },
+  arten10 = { "Collector", "Find 10 different kinds for your field guide." },
+  arten25 = { "Naturalist", "Find 25 different kinds for your field guide." },
+  arten50 = { "Walking Encyclopedia", "Find 50 different kinds for your field guide." },
+  lotus = { "Lotus Luck", "Find a Black Lotus." },
+  sitzung50 = { "On a Roll", "Gather 50 nodes in one session." },
+  sitzung100 = { "Unstoppable", "Gather 100 nodes in one session." },
+  stunde = { "Long Haul", "Keep one gathering session going for an hour." },
+  gold1 = { "Pocket Money", "Reach 1 gold per hour in a session of 15 minutes or more." },
+  gold10 = { "Gold Rush", "Reach 10 gold per hour in a session of 15 minutes or more." },
+  gold25 = { "Tycoon", "Reach 25 gold per hour in a session of 15 minutes or more." },
+  tag1 = { "Daily Dose", "Reach your daily goal." },
+  serie7 = { "Seven in a Row", "Reach your daily goal 7 days in a row." },
+  serie30 = { "Creature of Habit", "Reach your daily goal 30 days in a row." },
+}
 L.MSG_GATHER_RESET = "New gathering session started."
 
 -- Anzeige
@@ -148,6 +246,7 @@ L.CMD_ON = "switch Hop & Seek on or off"
 L.CMD_MODE = "jump, double or mounted"
 L.CMD_DEBUG = "show the tracking types and the self-check"
 L.CMD_RESET = "start a new gathering session"
+L.CMD_JOURNAL = "open the journal: rank, daily goal, records, badges, field guide"
 L.CMD_NEWS = "show what is new in this version"
 L.CMD_HELP = "show this list"
 L.MSG_ON = "Hop & Seek is on."
@@ -169,7 +268,8 @@ L.NEWS_OK = "Got it"
 L.NEWS = {
   { version = "1.2.0", zeilen = {
     "Gathering counter: herbs, ore, stone and gems you loot from nodes, per session and all time, with nodes and an amount per hour. See the new Gathered tab.",
-    "With Auctionator, Hop & Seek also shows what it is worth, in total and per hour.",
+    "A small gathering window shows your gold per hour and your best finds while you gather. With Auctionator, Hop & Seek knows what your haul is worth.",
+    "New Journal tab: every node earns points for your rank, set a daily goal and keep your streak, beat your records, earn badges and fill your field guide with every herb, ore and gem of Forever.",
     "The count of this session sits under the tracking icon, the details are in its tooltip.",
     "Works with square minimaps, and minimap button collectors pick up the button.",
   } },

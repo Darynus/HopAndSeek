@@ -44,6 +44,11 @@ local STANDARD = {
   neuigkeitenZeigen = true, -- nach einem Update einmal zeigen, was neu ist (Neuigkeiten.lua)
   zaehlen = true,       -- Sammelzähler (Sammeln.lua)
   zaehlerZeigen = true, -- Anzahl dieser Sitzung am Symbol
+  sammelLeisteZeigen = true, -- kleines Fenster mit Gold pro Stunde (SammelLeiste.lua)
+  sammelLeiste = {},    -- Position des Sammelfensters
+  meldungen = true,     -- kleine Meldungen für Abzeichen, Rang, Rekorde, Funde (Meldung.lua)
+  erfolgTon = true,     -- mit einem Ton des Spiels
+  erfolge = {},         -- Rang, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Felder in Erfolge.lua)
   gesamt = { menge = {}, knoten = { kraut = 0, erz = 0 } },  -- alles bisher Gesammelte
   -- sitzung: laufende Sitzung des Sammelzählers
   -- probe: Ergebnis der Selbstprüfung { geht, gcd, mehrere, gesperrt }

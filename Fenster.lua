@@ -1,4 +1,4 @@
--- Hauptfenster: Status, Settings, Help. Öffnen mit /hop, Minikarten-Knopf, Rechtsklick aufs Symbol
+-- Hauptfenster: Status, Gathered, Journal, Settings, Help. Öffnen mit /hop, Minikarten-Knopf, Rechtsklick aufs Symbol
 -- oder Optionen-Menü. Aussehen wie die Fenster des Spiels (Vorlage Campfire Buddy): Porträtrahmen,
 -- versenkte Innenfläche, Reiter unten. Fehlt eine Vorlage, baut sich das Fenster flach selbst.
 local ADDON, ns = ...
@@ -16,6 +16,7 @@ local B = BREITE - X - 20
 local REITER = {
   { schluessel = "status", text = L.TAB_STATUS },
   { schluessel = "sammeln", text = L.TAB_GATHERED },
+  { schluessel = "journal", text = L.TAB_JOURNAL },
   { schluessel = "einstellungen", text = L.TAB_SETTINGS },
   { schluessel = "hilfe", text = L.TAB_HELP },
 }
@@ -159,8 +160,14 @@ local function bauenSammeln()
     ns.aktualisieren()
   end)
   f.zeigen:SetPoint("TOPLEFT", 0, -308)
+  f.leiste = S.haken(f, B, L.SET_GATHER_BAR, L.SET_GATHER_BAR_HELP, function(_, an)
+    ns.db.sammelLeisteZeigen = an
+    if an then ns.SammelLeiste.zuBis = nil end
+    ns.aktualisieren()
+  end)
+  f.leiste:SetPoint("TOPLEFT", 0, -332)
   f.hinweis = S.absatz(f, B, F.leise)
-  f.hinweis:SetPoint("TOPLEFT", 0, -340)
+  f.hinweis:SetPoint("TOPLEFT", 0, -362)
 
   function f:Aktualisieren()
     local st = Z:Stand()
@@ -169,7 +176,7 @@ local function bauenSammeln()
       self.summe:SetText(L.GATHER_NONE)
       self.rate:SetText("")
     else
-      self.summe:SetText(string.format(L.GATHER_LINE, st.kraut, st.erz + st.rest, st.knoten))
+      self.summe:SetText(Z.Text(st))
       local teile = {}
       if st.proStunde then table.insert(teile, string.format(L.GATHER_RATE, st.proStunde)) end
       if st.wert then
@@ -188,12 +195,252 @@ local function bauenSammeln()
     end, "")
     local g = Z.Summe(ns.db.gesamt.menge)
     local k = ns.db.gesamt.knoten
-    local gesamt = string.format(L.GATHER_LINE, g.kraut, g.erz + g.rest, (k.kraut or 0) + (k.erz or 0))
+    local gesamt = Z.Text(g, (k.kraut or 0) + (k.erz or 0))
     if g.wert then gesamt = gesamt .. "\n" .. string.format(L.GATHER_WORTH, ns.geld(g.wert)) end
     self.gesamt:SetText(gesamt)
     self.zaehlen:Setzen(ns.db.zaehlen)
     self.zeigen:Setzen(ns.db.zaehlerZeigen)
+    self.leiste:Setzen(ns.db.sammelLeisteZeigen)
     self.hinweis:SetText(Z.MitPreisen() and L.GATHER_HELP or (L.GATHER_HELP .. " " .. L.GATHER_NO_PRICES))
+  end
+end
+
+-- Seite: Journal (Erfolge.lua): Rang, Tagesziel, Rekorde, Abzeichen und Sammelbuch ----------------
+
+local FELD, LUECKE = 22, 3
+
+-- Fortschritt eines Abzeichens als Text: "37 / 100", "3g 20s / 10g 0s", "42 / 60 min"
+local function fortschritt(e)
+  local E = ns.Erfolge
+  local w = math.min(e.wert, e.ziel)
+  if e.art == "gold" then return ns.geld(w) .. " / " .. ns.geld(e.ziel) end
+  if e.art == "dauer" then return string.format(L.JOURNAL_MINUTES_OF, math.floor(w / 60), math.floor(e.ziel / 60)) end
+  return E.Zahl(w) .. " / " .. E.Zahl(e.ziel)
+end
+
+local function abzeichenZeile(z, e)
+  local t = L.BADGES[e.key] or {}
+  z.icon:SetTexture(ns.Erfolge.Icon(e.icon))
+  z.icon:SetDesaturated(not e.erhalten)
+  z.icon:SetAlpha(e.erhalten and 1 or 0.5)
+  z.name:SetText(t[1] or e.key)
+  z.name:SetTextColor(rgba(e.erhalten and F.stern or F.leise))
+  z.text:SetText(t[2] or "")
+  if e.erhalten then
+    z.rechts:SetText(date("%Y-%m-%d", e.erhalten))
+    z.rechts:SetTextColor(rgba(F.erfolg))
+    z.fort:Hide()
+  else
+    z.rechts:SetText(e.ziel > 1 and fortschritt(e) or "")
+    z.rechts:SetTextColor(rgba(F.leise))
+    z.fort:SetShown(e.ziel > 1)
+    z.fort:Setzen(math.min(e.wert, e.ziel) / e.ziel)
+  end
+end
+
+-- Ein Feld im Sammelbuch: Symbol des Gegenstands, grau, solange es noch nicht gefunden ist
+local function feld(buch, i)
+  local b = buch.felder[i]
+  if b then return b end
+  b = CreateFrame("Button", nil, buch)
+  b:SetSize(FELD, FELD)
+  b.rand = b:CreateTexture(nil, "BACKGROUND")
+  b.rand:SetPoint("TOPLEFT", -1, 1)
+  b.rand:SetPoint("BOTTOMRIGHT", 1, -1)
+  b.rand:SetColorTexture(0, 0, 0, 0.8)
+  b.icon = b:CreateTexture(nil, "ARTWORK")
+  b.icon:SetAllPoints()
+  b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  b:SetScript("OnEnter", function(self)
+    local e = self.eintrag
+    if not e then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    if not pcall(GameTooltip.SetItemByID, GameTooltip, e.id) then GameTooltip:SetText(ns.Erfolge.Name(e.id)) end
+    if e.gefunden then
+      GameTooltip:AddLine(string.format(L.BOOK_FOUND, ns.Erfolge.Zahl(e.menge), date("%Y-%m-%d", e.gefunden)),
+        F.erfolg[1], F.erfolg[2], F.erfolg[3])
+    else
+      GameTooltip:AddLine(L.BOOK_MISSING, F.leise[1], F.leise[2], F.leise[3])
+    end
+    GameTooltip:Show()
+  end)
+  b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  buch.felder[i] = b
+  return b
+end
+
+-- Gruppen untereinander: Überschrift mit Zahl, darunter die Felder in Reihen
+local function buchZeichnen(buch, gruppen)
+  local pro = math.floor((B + LUECKE) / (FELD + LUECKE))
+  local y, n = 0, 0
+  for gi, gr in ipairs(gruppen) do
+    local t = buch.titel[gi]
+    if not t then
+      t = S.schrift(buch, "GameFontNormalSmall")
+      buch.titel[gi] = t
+    end
+    t:ClearAllPoints()
+    t:SetPoint("TOPLEFT", 0, -y)
+    t:SetText(string.format(L.BOOK_GROUP, gr.name, gr.gefunden, #gr.eintraege))
+    y = y + 14
+    for i, e in ipairs(gr.eintraege) do
+      n = n + 1
+      local b = feld(buch, n)
+      b:ClearAllPoints()
+      b:SetPoint("TOPLEFT", ((i - 1) % pro) * (FELD + LUECKE), -(y + math.floor((i - 1) / pro) * (FELD + LUECKE)))
+      b.eintrag = e
+      b.icon:SetTexture(ns.Erfolge.Icon(e.id))
+      b.icon:SetDesaturated(not e.gefunden)
+      b.icon:SetAlpha(e.gefunden and 1 or 0.35)
+      b:Show()
+    end
+    y = y + math.ceil(#gr.eintraege / pro) * (FELD + LUECKE) + 4
+  end
+  for i = n + 1, #buch.felder do buch.felder[i]:Hide() end
+end
+
+local function bauenJournal()
+  local f = seite("journal")
+  local E = ns.Erfolge
+  local HALB = math.floor(B / 2)
+
+  -- Rang: Titel, Punkte und Balken bis zum nächsten
+  f.rang = S.schrift(f, "GameFontNormalLarge")
+  f.rang:SetPoint("TOPLEFT", 0, 0)
+  f.punkte = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  f.punkte:SetPoint("TOPRIGHT", 0, -4)
+  f.balken = S.balken(f, B, 14, true)
+  f.balken:SetPoint("TOPLEFT", 0, -24)
+  S.tooltip(f.balken, L.JOURNAL_POINTS, L.JOURNAL_POINTS_HELP)
+
+  -- Heute: Knoten zum Tagesziel, Serie, Wahl des Ziels
+  S.ueberschrift(f, L.JOURNAL_TODAY):SetPoint("TOPLEFT", 0, -50)
+  f.tag = S.balken(f, 110, 12, true)
+  f.tag:SetPoint("TOPLEFT", 0, -70)
+  S.tooltip(f.tag, L.JOURNAL_TODAY, L.JOURNAL_GOAL_HELP)
+  f.tagText = S.schrift(f, "GameFontHighlightSmall", F.text)
+  f.tagText:SetPoint("LEFT", f.tag, "RIGHT", 8, 0)
+  f.serie = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  f.serie:SetPoint("TOPLEFT", 0, -88)
+  local ziel = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  ziel:SetPoint("TOPLEFT", 0, -110)
+  ziel:SetText(L.JOURNAL_GOAL)
+  local optionen = {}
+  for _, n in ipairs(E.ZIELE) do table.insert(optionen, { wert = n, text = tostring(n), hilfe = L.JOURNAL_GOAL_HELP }) end
+  f.ziel = S.segmente(f, HALB - 44, optionen, function(n) E:ZielSetzen(n) end)
+  f.ziel:SetPoint("TOPLEFT", 34, -105)
+
+  -- Rekorde
+  local rx = HALB + 12
+  S.ueberschrift(f, L.JOURNAL_RECORDS):SetPoint("TOPLEFT", rx, -50)
+  f.rekorde = {}
+  for i, art in ipairs({ "gold", "knoten", "wert", "dauer" }) do
+    local y = -70 - (i - 1) * 16
+    local name = S.schrift(f, "GameFontHighlightSmall", F.leise)
+    name:SetPoint("TOPLEFT", rx, y)
+    name:SetText(L.RECORDS[art])
+    local wert = S.schrift(f, "GameFontHighlightSmall", F.text)
+    wert:SetPoint("TOPRIGHT", 0, y)
+    f.rekorde[art] = wert
+  end
+
+  -- Abzeichen oder Sammelbuch, rechts daneben die Schalter für die Meldungen
+  f.zeige = "abzeichen"
+  f.ansicht = S.segmente(f, 270, {
+    { wert = "abzeichen", text = L.JOURNAL_BADGES, hilfe = L.JOURNAL_BADGES_HELP },
+    { wert = "buch", text = L.JOURNAL_BOOK, hilfe = L.JOURNAL_BOOK_HELP },
+  }, function(w)
+    f.zeige = w
+    f:Aktualisieren()
+  end)
+  f.ansicht:SetPoint("TOPLEFT", 0, -134)
+  f.meldungen = S.haken(f, 80, L.SET_POPUPS, L.SET_POPUPS_HELP, function(_, an)
+    ns.db.meldungen = an
+    ns.aktualisieren()
+  end)
+  f.meldungen:SetPoint("TOPLEFT", B - 152, -134)
+  f.ton = S.haken(f, 64, L.SET_POPUP_SOUND, L.SET_POPUP_SOUND_HELP, function(_, an)
+    ns.db.erfolgTon = an
+    ns.aktualisieren()
+  end)
+  f.ton:SetPoint("TOPLEFT", B - 64, -134)
+
+  local Y, ZEILE = -162, 38
+  f.liste = S.liste(f, B, ZEILE * 6, ZEILE, function(l)
+    local z = S.zeile(l)
+    z.icon = z:CreateTexture(nil, "ARTWORK")
+    z.icon:SetSize(30, 30)
+    z.icon:SetPoint("LEFT", 4, 0)
+    z.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    z.name = S.schrift(z, "GameFontNormal")
+    z.name:SetPoint("TOPLEFT", 42, -4)
+    z.text = S.schrift(z, "GameFontHighlightSmall", F.leise)
+    z.text:SetPoint("TOPLEFT", 42, -21)
+    for _, s in ipairs({ z.name, z.text }) do
+      s:SetWidth(B - 160)
+      s:SetJustifyH("LEFT")
+      s:SetWordWrap(false)
+    end
+    z.rechts = S.schrift(z, "GameFontHighlightSmall", F.leise)
+    z.rechts:SetPoint("TOPRIGHT", -12, -5)
+    z.fort = S.balken(z, 96, 6)
+    z.fort:SetPoint("BOTTOMRIGHT", -12, 9)
+    z:HookScript("OnEnter", function(self)
+      local e = self.eintrag
+      if not e then return end
+      local t = L.BADGES[e.key] or {}
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+      GameTooltip:SetText(t[1] or e.key, 1, 0.82, 0)
+      GameTooltip:AddLine(t[2] or "", 1, 1, 1, true)
+      if e.erhalten then
+        GameTooltip:AddLine(string.format(L.BADGE_EARNED, date("%Y-%m-%d", e.erhalten)), F.erfolg[1], F.erfolg[2], F.erfolg[3])
+      else
+        GameTooltip:AddLine(fortschritt(e), F.leise[1], F.leise[2], F.leise[3])
+        if e.art == "gold" and not ns.Sammeln.MitPreisen() then
+          GameTooltip:AddLine(L.BADGE_NEEDS_PRICES, F.hinweis[1], F.hinweis[2], F.hinweis[3], true)
+        end
+      end
+      GameTooltip:Show()
+    end)
+    z:HookScript("OnLeave", function() GameTooltip:Hide() end)
+    return z
+  end)
+  f.liste:SetPoint("TOPLEFT", 0, Y)
+  f.buch = CreateFrame("Frame", nil, f)
+  f.buch:SetPoint("TOPLEFT", 0, Y)
+  f.buch:SetSize(B, HOEHE + OBEN - UNTEN + Y)
+  f.buch.titel, f.buch.felder = {}, {}
+
+  function f:Aktualisieren()
+    local st = E:Stand()
+    self.rang:SetText(string.format(L.RANK_TITLE, st.rang, st.name))
+    self.punkte:SetText(string.format(L.JOURNAL_POINTS_TEXT, E.Zahl(st.punkte)))
+    self.balken:Setzen((st.punkte - st.von) / (st.bis - st.von),
+      string.format(L.RANK_TO_NEXT, E.Zahl(st.bis - st.punkte), st.naechster))
+    self.tag:Setzen(st.heute / st.ziel, nil, st.erreicht and F.erfolg or F.akzent)
+    self.tagText:SetText(string.format(L.TODAY_NODES, st.heute, st.ziel))
+    self.tagText:SetTextColor(rgba(st.erreicht and F.erfolg or F.text))
+    self.serie:SetText(E.SerieText(st))
+    self.ziel:Setzen(st.ziel)
+    local r = ns.db.erfolge.rekord
+    local ohne = ns.Sammeln.MitPreisen() and L.RECORD_NONE or L.RECORD_NEEDS_PRICES
+    self.rekorde.gold:SetText(r.gold and ns.geld(r.gold.wert) or ohne)
+    self.rekorde.knoten:SetText(r.knoten and E.Zahl(r.knoten.wert) or L.RECORD_NONE)
+    self.rekorde.wert:SetText(r.wert and ns.geld(r.wert.wert) or ohne)
+    self.rekorde.dauer:SetText(r.dauer and ns.dauer(r.dauer.wert) or L.RECORD_NONE)
+    local gruppen, gesamt = E:Buch()
+    self.ansicht:Setzen(self.zeige)
+    self.ansicht.knoepfe[1].text:SetText(string.format(L.JOURNAL_BADGES_COUNT, st.abzeichen, st.abzeichenAlle))
+    self.ansicht.knoepfe[2].text:SetText(string.format(L.JOURNAL_BOOK_COUNT, E.Arten(), gesamt))
+    self.meldungen:Setzen(ns.db.meldungen)
+    self.ton:Setzen(ns.db.erfolgTon)
+    self.liste:SetShown(self.zeige == "abzeichen")
+    self.buch:SetShown(self.zeige == "buch")
+    if self.zeige == "buch" then
+      buchZeichnen(self.buch, gruppen)
+    else
+      self.liste:Setzen(E:AbzeichenListe(), abzeichenZeile, "")
+    end
   end
 end
 
@@ -372,8 +619,8 @@ local function bauenFlach(r)
   zu:SetPoint("TOPRIGHT", -8, -11)
   W.reiter = {}
   for i, t in ipairs(REITER) do
-    local b = S.textKnopf(r, t.text, 100, function() S.klick() W:Zeigen(t.schluessel) end)
-    b:SetPoint("TOPLEFT", r, "BOTTOMLEFT", 10 + (i - 1) * 104, -2)
+    local b = S.textKnopf(r, t.text, 86, function() S.klick() W:Zeigen(t.schluessel) end)
+    b:SetPoint("TOPLEFT", r, "BOTTOMLEFT", 10 + (i - 1) * 89, -2)
     b.schluessel = t.schluessel
     W.reiter[i] = b
   end
@@ -402,6 +649,7 @@ function W:Bauen()
   if self.echt then bauenEcht(r) else bauenFlach(r) end
   bauenStatus()
   bauenSammeln()
+  bauenJournal()
   bauenEinstellungen()
   bauenHilfe()
   r:Hide()
