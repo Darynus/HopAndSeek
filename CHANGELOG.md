@@ -4,6 +4,7 @@
 
 - **Next spot**: the pin in the gathering window, `/hop next` or a key binding sets the game's own marker on the nearest herb or ore vein you gathered before, with the distance on your screen. Gather there, and the marker moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count. Right-click the pin or `/hop next stop` ends the guide, your own map pin stays untouched once you set a new one.
 - **Key bindings**: Esc > Options > Keybindings > AddOns > Hop & Seek.
+- Gathering spots no longer show on the world map and in OpenMap, map add-ons do that better. Hop & Seek still remembers every node you gather for Next spot, and the Gathered tab shows how many spots it knows.
 - The light pillar does less work in busy places.
 
 ## 1.2.0 (2026-11-13)

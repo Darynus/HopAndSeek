@@ -21,7 +21,7 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 - **Light pillar** over the herb, ore vein or creature to skin right in front of you, in three looks.
 - **Count what you gather**, with gold per hour and the value of your haul from Auctionator or Midas. Skinning counts too.
 - **Journal**: seeker points and ranks, a daily goal and streak, records, 23 badges and a field guide. Share it with your group.
-- **Gathering spots on your world map**, also on OpenMap, and a reminder when your profession needs a trainer.
+- **Time to train**: a reminder when your profession needs a trainer, and the level you need.
 
 ![How it works](images/hopandseek-1-ablauf.png)
 
@@ -46,8 +46,7 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 ## Find your next node
 
 - **Light pillar**: a beam of light over the herb, ore vein or creature to skin right in front of you, in three looks: a soft Glow, rising Fireflies or a clear Beam. Switch it on in Settings.
-- **Gathering spots on your world map**: every node you gather becomes a small pin with the icon of what grew there. After a few rounds you see the good routes. Works with OpenMap too.
-- **Next spot**: click the pin in the gathering window, type `/hop next` or press your key, and the game's own marker guides you to the nearest herb or ore vein you gathered before, with the distance on your screen. Gather there, and it moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count.
+- **Next spot**: Hop & Seek remembers every herb and ore vein you gather. Click the pin in the gathering window, type `/hop next` or press your key, and the game's own marker guides you to the nearest one, with the distance on your screen. Gather there, and it moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count.
 - Set your key under *Esc > Options > Keybindings > AddOns > Hop & Seek*. Right-click the pin to end the guide.
 
 ## Make gathering a game

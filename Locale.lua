@@ -196,15 +196,9 @@ L.BAR_RANK = "%s  %s/%s"
 L.BAR_TODAY = "Today %d/%d"
 L.SESSION_SUMMARY = "Session over: %s."
 L.SESSION_BEST = "Best find: %s."
-L.SET_GATHER_MAP = "Show gathering spots on the world map"
-L.SET_GATHER_MAP_HELP = "Every herb and ore node you gather becomes a small pin on your world map, also on OpenMap. Spots close together count as one. Right-click a pin to remove it."
-L.GATHER_MAP_COUNT = "%d spots"
-L.MAP_TOGGLE = "Gathering spots (Hop & Seek)"
+L.GATHER_SPOTS_KNOWN = "%d spots known"
 L.MAP_NODE_HERB = "Herb"
 L.MAP_NODE_ORE = "Ore"
-L.MAP_NODE_ONCE = "Gathered once, on %s"
-L.MAP_NODE_TIMES = "Gathered %d times, last on %s"
-L.MAP_NODE_REMOVE = "Right-click: remove this spot"
 L.SKILL_HERBALISM = "Herbalism"
 L.SKILL_MINING = "Mining"
 L.SKILL_SKINNING = "Skinning"
@@ -292,6 +286,7 @@ L.CMD_NEXT = "guide you to the nearest herb or ore vein you gathered before, sto
 -- Wegweiser zur nächsten bekannten Stelle (Wegweiser.lua)
 L.NEXT_BUTTON = "Next spot"
 L.NEXT_BUTTON_HELP = "Left-click: the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot. Right-click: guide off.\n\nAlso /hop next, or a key under Esc > Options > Keybindings > AddOns."
+L.NEXT_WINDOW_HELP = "The game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot. Hop & Seek remembers every node you gather. /hop next stop ends the guide."
 L.NEXT_SPOT = "Next spot: %s, %d yards away. Follow the marker."
 L.NEXT_SPOT_NO_DISTANCE = "Next spot: %s. Follow the marker."
 L.NEXT_NONE = "No other gathering spot known on this map yet. Your map fills up as you gather."
@@ -346,12 +341,12 @@ L.NEWS = {
     "Next spot: click the pin in the gathering window, type /hop next or press your key, and the game's marker guides you to the nearest herb or ore vein you gathered before. Gather there, and it moves on to the next spot.",
     "Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count. Right-click the pin to end the guide.",
     "Set a key under Esc > Options > Keybindings > AddOns > Hop & Seek.",
+    "Gathering spots no longer show on your world map. Hop & Seek still remembers them for Next spot.",
   } },
   { version = "1.2.0", zeilen = {
     "Gathering counter: herbs, ore, stone and gems you loot from nodes, per session and all time, with nodes and an amount per hour. See the new Gathered tab.",
     "A small gathering window shows your gold per hour and your best finds while you gather. With Auctionator, Hop & Seek knows what your haul is worth.",
     "New Journal tab: every node earns points for your rank, set a daily goal and keep your streak, beat your records, earn badges and fill your field guide with every herb, ore and gem of Forever.",
-    "Gathering spots on your world map: every node you gather becomes a small pin, also on OpenMap.",
     "Share your journal with your group and compare ranks and records with your friends.",
     "Hop & Seek tells you when Herbalism or Mining needs a trainer and sums up each gathering session in your chat.",
     "Prices from Auctionator, or from Midas if you prefer (Gathered tab).",

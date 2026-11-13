@@ -5,7 +5,7 @@
 ## Version: 1.2.1
 ## IconTexture: Interface\AddOns\HopAndSeek\Media\Icon
 ## AddonCompartmentFunc: HopAndSeek_OnAddonCompartmentClick
-## OptionalDeps: Auctionator, Midas, OpenMap
+## OptionalDeps: Auctionator, Midas
 ## SavedVariables: HopAndSeekDB
 
 Locale.lua
