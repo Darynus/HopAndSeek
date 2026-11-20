@@ -1,5 +1,9 @@
 # Hop & Seek changelog
 
+## 1.2.3 (2026-11-20)
+
+- **Next spot and the route**: close to the spot, the game's marker steps aside. On the minimap it sat right on top of the node and hid it, so you could not see whether the node had grown back. Now you see the node itself, or that it is not there yet. Walk on without gathering, and the marker comes back.
+
 ## 1.2.2 (2026-11-13)
 
 - **Nearest trainer**: click the trainer hint in the gathering window, use the new Gathering professions section in the Status tab or type `/hop trainer` (or `/hop trainer herbalism`, `mining`, `skinning`), and the game's own marker shows the way to the nearest trainer of your faction on this continent, with the distance. The reminder at the limit of your rank tells you about it.

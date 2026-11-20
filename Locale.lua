@@ -350,6 +350,9 @@ L.NEWS_AGAIN = "Show this after updates"
 L.NEWS_AGAIN_HELP = "A short window once after Hop & Seek was updated. /hop news shows it again."
 L.NEWS_OK = "Got it"
 L.NEWS = {
+  { version = "1.2.3", zeilen = {
+    "Next spot and the route: close to the spot, the game's marker steps aside, so your minimap shows whether the node has grown back. Walk on without gathering, and it comes back.",
+  } },
   { version = "1.2.2", zeilen = {
     "Nearest trainer: click the trainer hint in the gathering window, use the buttons in the Status tab or type /hop trainer, and the game's marker shows the way to the nearest Herbalism, Mining or Skinning trainer of your faction.",
     "Route while gathering (Gathered tab): after every node the marker moves on to the next spot by itself, no click needed.",

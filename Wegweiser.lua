@@ -7,6 +7,9 @@
 -- an denen man vor weniger als zehn Minuten gesammelt hat (wachsen noch nach).
 -- Nur auf Klick oder Taste. Einen eigenen Wegpunkt des Spielers ersetzt der Klick, den von Hop & Seek
 -- nimmt es nur weg, solange er noch der eigene ist. Nur eigene Daten, nichts wird gesendet.
+-- Nah an der Stelle blendet sich die Markierung aus (Patrick, 20. Nov): Auf der Minikarte liegt sie
+-- genau über dem Punkt des nachgewachsenen Knotens und verdeckt ihn. So sieht man dort selbst, ob er
+-- wieder steht. Wer weitergeht, ohne zu sammeln, bekommt sie zurück.
 local ADDON, ns = ...
 local L = ns.L
 
@@ -15,6 +18,8 @@ ns.Wegweiser = W
 
 W.NACHWACHSEN = 10 * 60   -- Sekunden: hier frisch gesammelt, wächst wohl noch nach
 W.HIER = 25               -- Meter: so nah steht man an einer Stelle (oder hat sie erreicht)
+W.AUSBLENDEN = 80         -- Meter: so nah blendet sich die Markierung aus (ohne Zoom der Minikarte)
+W.WIEDER = 30             -- Meter mehr: so weit weg kommt sie zurück
 
 local function zeit() return (GetServerTime and GetServerTime()) or time() end
 
@@ -118,10 +123,10 @@ end
 
 function W:Setzen(z)
   -- Vorher merken: das Spiel meldet USER_WAYPOINT_UPDATED womöglich sofort
-  local altZiel, altPunkt = self.ziel, self.punkt
-  self.ziel, self.punkt = z.e, { karte = z.karte, x = z.e.x, y = z.e.y }
+  local altZiel, altPunkt, altVersteckt = self.ziel, self.punkt, self.versteckt
+  self.ziel, self.punkt, self.versteckt = z.e, { karte = z.karte, x = z.e.x, y = z.e.y }, nil
   if not W.Wegpunkt(z.karte, z.e.x, z.e.y) then
-    self.ziel, self.punkt = altZiel, altPunkt
+    self.ziel, self.punkt, self.versteckt = altZiel, altPunkt, altVersteckt
     return false
   end
   return true
@@ -130,7 +135,7 @@ end
 -- Klick, /hop next oder Taste: zur nächsten Stelle. Läuft der Wegweiser schon, wird die jetzige
 -- übersprungen (etwa weil dort nichts mehr wächst).
 function W:Weiter()
-  if self.ziel and istUnserer(self) then
+  if self.ziel and (istUnserer(self) or self.versteckt) then
     self.uebersprungen[self.ziel] = true
   else
     self.ziel, self.punkt, self.uebersprungen = nil, nil, {}
@@ -161,7 +166,7 @@ function W:Aus(still)
   end
   local lief = self.ziel ~= nil or (not still and ns.db.route)
   if not still then ns.db.route = false end
-  self.ziel, self.punkt, self.erreicht, self.uebersprungen = nil, nil, nil, {}
+  self.ziel, self.punkt, self.erreicht, self.uebersprungen, self.versteckt = nil, nil, nil, {}, nil
   if not still and lief then ns.melde(L.NEXT_OFF) end
   ns.aktualisieren()
 end
@@ -197,8 +202,8 @@ ns.Ereignis("LOOT_CLOSED", function()
   W.gesammelt, W.erreicht = nil, nil
   if not gesammelt then return end
   if W.ziel then
-    if not istUnserer(W) then
-      W.ziel, W.punkt = nil, nil
+    if not (istUnserer(W) or (W.versteckt and not fremderWegpunkt())) then
+      W.ziel, W.punkt, W.versteckt = nil, nil, nil
       return
     end
     -- Ohne Route erst an der Zielstelle weiter, mit Route nach jedem Knoten von hier aus
@@ -219,10 +224,55 @@ end)
 
 -- Der Spieler hat den Wegpunkt weggenommen oder einen eigenen gesetzt: Wegweiser still aus
 ns.Ereignis("USER_WAYPOINT_UPDATED", function()
-  if W.ziel and not istUnserer(W) then
-    W.ziel, W.punkt, W.erreicht, W.uebersprungen = nil, nil, nil, {}
+  if W.ziel and not istUnserer(W) and not (W.versteckt and not fremderWegpunkt()) then
+    W.ziel, W.punkt, W.erreicht, W.uebersprungen, W.versteckt = nil, nil, nil, {}, nil
     ns.aktualisieren()
   end
+end)
+
+-- Ab wann ist die Stelle so nah, dass die Minikarte ihren Knoten selbst zeigt? Nach der Zoomstufe der
+-- Minikarte (Durchmesser in Metern wie im Spiel, draußen und drinnen), etwas innerhalb ihres Rands,
+-- zwischen 40 und 120 Metern. Ohne Zoomstufe W.AUSBLENDEN.
+local DRAUSSEN = { [0] = 466.67, 400, 333.33, 266.67, 200, 133.33 }
+local DRINNEN = { [0] = 300, 240, 180, 120, 80, 50 }
+local function ausblendAbstand()
+  local ok, zoom = pcall(function() return Minimap:GetZoom() end)
+  local drinnen = IsIndoors and IsIndoors()
+  local d = ok and type(zoom) == "number" and (drinnen and DRINNEN or DRAUSSEN)[zoom]
+  if not d then return W.AUSBLENDEN end
+  return math.max(40, math.min(120, d / 2 * 0.8))
+end
+W.AusblendAbstand = ausblendAbstand
+
+-- Zweimal pro Sekunde, solange der Wegweiser läuft: nah dran die Markierung weg, weiter weg wieder da.
+-- Nur die eigene Markierung, ein Wegpunkt des Spielers bleibt unberührt.
+function W:Naehe()
+  if not (self.ziel and self.punkt) then return end
+  local karte, x, y = ns.SammelKarte.Position()
+  if not karte or karte ~= self.punkt.karte then return end
+  local d, meter = abstand(karte, x, y, self.punkt.x, self.punkt.y)
+  if not meter then return end
+  local grenze = ausblendAbstand()
+  if not self.versteckt and d <= grenze and istUnserer(self) then
+    -- Vorher merken: das Spiel meldet USER_WAYPOINT_UPDATED womöglich sofort
+    self.versteckt = true
+    if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then pcall(C_SuperTrack.SetSuperTrackedUserWaypoint, false) end
+    if C_Map and C_Map.ClearUserWaypoint then pcall(C_Map.ClearUserWaypoint) end
+    ns.aktualisieren()
+  elseif self.versteckt and d > grenze + W.WIEDER and not fremderWegpunkt() then
+    self.versteckt = nil
+    if not W.Wegpunkt(self.punkt.karte, self.punkt.x, self.punkt.y) then self.ziel, self.punkt = nil, nil end
+    ns.aktualisieren()
+  end
+end
+
+local naehe = CreateFrame("Frame")
+local warten = 0
+naehe:SetScript("OnUpdate", function(_, dt)
+  warten = warten + dt
+  if warten < 0.5 then return end
+  warten = 0
+  if W.ziel and ns.db then W:Naehe() end
 end)
 
 -- Taste (Bindings.xml): Esc > Options > Keybindings > AddOns > Hop & Seek. Ein Tastendruck ist ein

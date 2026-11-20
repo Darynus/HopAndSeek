@@ -46,7 +46,7 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 ## Find your next node
 
 - **Light pillar**: a beam of light over the herb, ore vein or creature to skin right in front of you, in three looks: a soft Glow, rising Fireflies or a clear Beam. Switch it on in Settings.
-- **Next spot**: Hop & Seek remembers every herb and ore vein you gather. Click the pin in the gathering window, type `/hop next` or press your key, and the game's own marker guides you to the nearest one, with the distance on your screen. Gather there, and it moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count.
+- **Next spot**: Hop & Seek remembers every herb and ore vein you gather. Click the pin in the gathering window, type `/hop next` or press your key, and the game's own marker guides you to the nearest one, with the distance on your screen. Close to the spot the marker steps aside, so your minimap shows whether the node has grown back. Gather there, and it moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count.
 - **Route while gathering**: tick it in the Gathered tab, and after every node the marker moves on to the next spot by itself. Just gather and follow it, no click needed.
 - Set your key under *Esc > Options > Keybindings > AddOns > Hop & Seek*. Right-click the pin to end the guide.
 
