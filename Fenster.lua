@@ -495,16 +495,20 @@ local function bauenJournal()
     f:Aktualisieren()
   end)
   f.ansicht:SetPoint("TOPLEFT", 0, -146)
-  f.meldungen = S.haken(f, 80, L.SET_POPUPS, L.SET_POPUPS_HELP, function(_, an)
+  -- Die Schalter lassen rechts Platz für eine Menge; hier gibt es keine, sonst bliebe vom Text nur
+  -- „...“ (Patricks Screenshot vom 21. Nov)
+  f.meldungen = S.haken(f, 90, L.SET_POPUPS, L.SET_POPUPS_HELP, function(_, an)
     ns.db.meldungen = an
     ns.aktualisieren()
   end)
-  f.meldungen:SetPoint("TOPLEFT", B - 152, -146)
-  f.ton = S.haken(f, 64, L.SET_POPUP_SOUND, L.SET_POPUP_SOUND_HELP, function(_, an)
+  f.meldungen.name:SetPoint("RIGHT", -2, 0)
+  f.meldungen:SetPoint("TOPLEFT", B - 164, -146)
+  f.ton = S.haken(f, 72, L.SET_POPUP_SOUND, L.SET_POPUP_SOUND_HELP, function(_, an)
     ns.db.erfolgTon = an
     ns.aktualisieren()
   end)
-  f.ton:SetPoint("TOPLEFT", B - 64, -146)
+  f.ton.name:SetPoint("RIGHT", -2, 0)
+  f.ton:SetPoint("TOPLEFT", B - 72, -146)
 
   local Y, ZEILE = -174, 38
   f.liste = S.liste(f, B, ZEILE * 5, ZEILE, function(l)
