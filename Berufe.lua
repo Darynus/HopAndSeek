@@ -48,6 +48,58 @@ function B.Lesen()
   return liste
 end
 
+-- Nötige Stufe zum Sammeln, nach dem Fund einer Stelle (Kraut, Erz oder der Stein der Ader). Für das
+-- Radar (Patrick, 20. Nov: „Gemessen an meinem Skill dürfte ich hier keine Punkte mehr bekommen ...
+-- dürfte der Kasten nicht grün sein“). Werte wie in Classic, in Forever unverändert (Wowhead Forever,
+-- Leitfäden Kräuterkunde und Bergbau, 20. Nov nachgesehen), dazu die neuen Knoten am Hyjal: Demonsage,
+-- Marefoil und Heavy Thorium Vein, je 300. Seltene Zugaben ohne eigenen Knoten (Frilled Lichen, Rosecap,
+-- Stranglevine, Death Lotus, Pyrite, Bauxite, Pitchblende) fehlen mit Absicht: Sie fallen aus vielen
+-- Knoten und sagen nichts über die Stufe der Stelle.
+B.STUFE = {
+  -- Kräuter
+  [2447] = 1, [765] = 1, [2449] = 15, [785] = 50, [2450] = 70, [3820] = 85, [2453] = 100, [3355] = 115,
+  [3369] = 120, [3356] = 125, [3357] = 150, [3818] = 160, [3821] = 170, [3358] = 185, [3819] = 195,
+  [4625] = 205, [8831] = 210, [8836] = 220, [8838] = 230, [8839] = 235, [8845] = 245, [8846] = 250,
+  [13464] = 260, [13463] = 270, [13465] = 280, [13466] = 285, [13467] = 290, [13468] = 300,
+  [248821] = 300, [248823] = 300,
+  -- Erz, dazu die Steine für die Ader ihrer Stufe
+  [2770] = 1, [2835] = 1, [2771] = 65, [2836] = 65, [2775] = 75, [2772] = 125, [2838] = 125, [2776] = 155,
+  [3858] = 175, [7912] = 175, [7911] = 230, [11370] = 230, [10620] = 245, [12365] = 245, [248815] = 300,
+}
+
+-- Welcher Knoten stand an der Stelle? Ihr häufigster Fund mit bekannter Stufe, bei Gleichstand der
+-- höhere. Zugaben ohne Stufe zählen nicht. nil: nichts Bekanntes.
+function B.KnotenFund(e)
+  local beste, menge
+  for id, n in pairs(e and e.inhalt or {}) do
+    local s = B.STUFE[id]
+    if s and (not menge or n > menge or (n == menge and s > B.STUFE[beste])) then beste, menge = id, n end
+  end
+  return beste
+end
+
+-- Farbe wie im Spiel beim Sammeln: rot (noch zu niedrig), orange (sicher ein Punkt), gelb, grün
+-- (vielleicht), grau (keine Punkte mehr). In Forever ab der nötigen Stufe orange, ab +25 gelb, ab +65
+-- grün (in Classic schon ab +50) und ab +100 grau. Knoten ab Stufe 1 rechnen von 0 aus (Kupfer:
+-- 1, 25, 65, 100). Quelle: Wowhead Forever, Leitfäden Kräuterkunde (9. Nov) und Bergbau (16. Nov).
+-- nil: Stufe oder Beruf unbekannt.
+B.FARBEN = {
+  rot = { 1, 0.1, 0.1 }, orange = { 1, 0.5, 0.25 }, gelb = { 1, 1, 0 }, gruen = { 0.25, 0.75, 0.25 }, grau = { 0.5, 0.5, 0.5 },
+}
+function B.Schwierigkeit(art, itemID)
+  local stufe = itemID and B.STUFE[itemID]
+  if not stufe then return nil end
+  local rang
+  for _, p in ipairs(B.Liste()) do if p.art == art then rang = p.rang end end
+  if not rang then return nil end
+  local basis = stufe == 1 and 0 or stufe
+  if rang < stufe then return "rot" end
+  if rang < basis + 25 then return "orange" end
+  if rang < basis + 65 then return "gelb" end
+  if rang < basis + 100 then return "gruen" end
+  return "grau"
+end
+
 local NAMEN = { kraut = "SKILL_HERBALISM", erz = "SKILL_MINING", leder = "SKILL_SKINNING" }
 function B.Name(p) return L[NAMEN[p.art]] end
 

@@ -84,8 +84,68 @@ S.F = {
 }
 local F = S.F
 
+-- Hauptfenster seit 1.3.0 (Patrick, 20. Nov: „modern sieht es so nicht aus ... altbacken“, Vorschau
+-- mit zwei Richtungen, gewählt: dunkel mit feiner Goldkante): dunkler Grund, Karten, 1 Pixel Rand in
+-- Gold, Text in Gold auf den Knöpfen, Schalter statt Haken. Alles flach selbst gezeichnet, nur
+-- BackdropTemplate und zwei schlichte Formen (Media/Pille, Media/Kreis), keine Deko-Texturen.
+S.M = {
+  grund      = { 0.086, 0.086, 0.106, 0.97 },
+  kopf       = { 0.114, 0.114, 0.141, 1 },
+  karte      = { 0.118, 0.118, 0.145, 1 },
+  karteHell  = { 0.160, 0.155, 0.170, 1 },
+  kartenRand = { 0.204, 0.188, 0.165, 1 },
+  gold       = { 0.949, 0.788, 0.420, 1 },
+  goldRand   = { 0.541, 0.427, 0.231, 1 },
+  goldText   = { 0.914, 0.851, 0.706, 1 },
+  linie      = { 0.231, 0.200, 0.149, 1 },
+  aktiv      = { 0.227, 0.192, 0.133, 1 },
+  aus        = { 0.260, 0.255, 0.290, 1 },
+  text       = { 0.910, 0.902, 0.882, 1 },
+  leise      = { 0.604, 0.592, 0.561, 1 },
+}
+local M = S.M
+
 function S.rgba(f) return f[1], f[2], f[3], f[4] or 1 end
 local rgba = S.rgba
+
+-- Fläche mit 1 Pixel Rand (Karten, Knöpfe, Felder im Hauptfenster)
+S.FLACH = { bgFile = S.WEISS, edgeFile = S.WEISS, edgeSize = 1, insets = { left = 1, right = 1, top = 1, bottom = 1 } }
+function S.karte(parent, typ, grund, rand, name)
+  local f = CreateFrame(typ or "Frame", name, parent, "BackdropTemplate")
+  if f.SetBackdrop then
+    f:SetBackdrop(S.FLACH)
+    f:SetBackdropColor(rgba(grund or M.karte))
+    f:SetBackdropBorderColor(rgba(rand or M.kartenRand))
+  end
+  return f
+end
+
+-- Kachel mit kleiner Beschriftung (Symbol davor) und großer Zahl darunter
+function S.kachel(parent, breite, hoehe, beschriftung, icon)
+  local k = S.karte(parent, "Frame")
+  k:SetSize(breite, hoehe)
+  local x = 8
+  if icon then
+    k.icon = k:CreateTexture(nil, "ARTWORK")
+    k.icon:SetSize(14, 14)
+    k.icon:SetPoint("TOPLEFT", 8, -7)
+    k.icon:SetTexture(icon)
+    k.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    x = 26
+  end
+  k.name = S.schrift(k, "GameFontHighlightSmall", M.leise)
+  k.name:SetPoint("TOPLEFT", x, -8)
+  k.name:SetPoint("RIGHT", -6, 0)
+  k.name:SetJustifyH("LEFT")
+  k.name:SetWordWrap(false)
+  k.name:SetText(beschriftung)
+  k.zahl = S.schrift(k, "GameFontHighlightLarge", M.text)
+  k.zahl:SetPoint("BOTTOMLEFT", 8, 7)
+  k.zahl:SetPoint("RIGHT", -6, 0)
+  k.zahl:SetJustifyH("LEFT")
+  k.zahl:SetWordWrap(false)
+  return k
+end
 
 function S.heller(f)
   return { f[1] + (1 - f[1]) * 0.2, f[2] + (1 - f[2]) * 0.2, f[3] + (1 - f[3]) * 0.2, f[4] or 1 }
@@ -109,23 +169,11 @@ function S.kasten(parent, typ, grund, rand, name)
   return f
 end
 
--- Baustein des Spiels (Vorlage aus dem Client, z. B. UIPanelButtonTemplate). nil, wenn es die
--- Vorlage in diesem Client nicht gibt. Das Hauptfenster nimmt so den echten Look von WoW, wo es
--- geht, und fällt sonst auf die eigenen Bausteine zurück.
+-- Baustein des Spiels (Vorlage aus dem Client). nil, wenn es die Vorlage in diesem Client nicht gibt.
+-- Seit 1.3.0 zeichnet Hop & Seek seine Fenster selbst; bleibt für Fälle, in denen nur das Spiel es kann.
 function S.vorlage(typ, parent, vorlage, name)
   local ok, f = pcall(CreateFrame, typ, name, parent, vorlage)
   if ok and f then return f end
-end
-
--- Schrift eines Knopfs aus einer Vorlage (sonst eine eigene in der Mitte)
-local function knopfSchrift(b, vorlage)
-  local s = b.GetFontString and b:GetFontString()
-  if type(s) ~= "table" then s = type(b.Text) == "table" and b.Text or nil end
-  if not s then
-    s = S.schrift(b, vorlage or "GameFontNormal")
-    s:SetPoint("CENTER")
-  end
-  return s
 end
 
 function S.grundFarbe(f, farbe) if f.SetBackdropColor then f:SetBackdropColor(rgba(farbe)) end end
@@ -161,9 +209,9 @@ function S.tooltip(rahmen, titel, text)
   rahmen:HookScript("OnLeave", function() GameTooltip:Hide() end)
 end
 
--- Überschrift in Gold, wie die Abschnitte in den Fenstern des Spiels
+-- Überschrift in Gold, in der Schrift des Spiels
 function S.ueberschrift(parent, text)
-  local s = S.schrift(parent, "GameFontNormal")
+  local s = S.schrift(parent, "GameFontNormal", M.gold)
   s:SetText(text)
   return s
 end
@@ -216,98 +264,48 @@ function S.stern(parent, groesse)
   return t
 end
 
--- Haken mit Text, rechts optional eine Zahl. Mit dem Haken-Kasten des Spiels, wenn es ihn gibt.
--- Die ganze Zeile ist anklickbar, der Kasten selbst nimmt keine Maus an.
+-- Schalter mit Text, rechts optional eine Zahl (bis 1.3.0 ein Haken). Spur und Knauf: an in Gold, der
+-- Knauf rechts; aus grau, der Knauf links. Die ganze Zeile ist anklickbar.
 function S.haken(parent, breite, text, hilfe, beiKlick)
   local b = CreateFrame("Button", nil, parent)
-  local box = S.vorlage("CheckButton", b, "UICheckButtonTemplate")
-  if box then
-    b:SetSize(breite, 22)
-    box:SetSize(22, 22)
-    box:SetPoint("LEFT", -3, 0)
-    box:EnableMouse(false)
-    b.box = box
-    b.name = S.schrift(b, "GameFontHighlightSmall")
-    b.name:SetPoint("LEFT", box, "RIGHT", 2, 1)
-    b.name:SetText(text)
-    b.menge = S.schrift(b, "GameFontHighlightSmall", F.leise)
-    b.menge:SetPoint("RIGHT", -4, 0)
-    function b:Setzen(an)
-      self.an = an and true or false
-      self.box:SetChecked(self.an)
-    end
-    b:SetScript("OnClick", function(self)
-      S.klick()
-      beiKlick(self, not self.an)
-    end)
-    b:HookScript("OnEnter", function(self) if self.box.LockHighlight then self.box:LockHighlight() end end)
-    b:HookScript("OnLeave", function(self) if self.box.UnlockHighlight then self.box:UnlockHighlight() end end)
-    S.tooltip(b, text, hilfe)
-    return b
-  end
-  b:SetSize(breite, 20)
-  b.kasten = S.kasten(b, "Frame", F.flaeche, F.rand)
-  b.kasten:SetSize(14, 14)
-  b.kasten:SetPoint("LEFT", 0, 0)
-  b.fuellung = b.kasten:CreateTexture(nil, "OVERLAY")
-  b.fuellung:SetPoint("TOPLEFT", 3, -3)
-  b.fuellung:SetPoint("BOTTOMRIGHT", -3, 3)
-  b.fuellung:SetColorTexture(rgba(F.akzent))
-  b.name = S.schrift(b, "GameFontHighlightSmall", F.text)
-  b.name:SetPoint("LEFT", b.kasten, "RIGHT", 6, 0)
+  b:SetSize(breite, 22)
+  b.spur = b:CreateTexture(nil, "ARTWORK")
+  b.spur:SetTexture(MEDIA .. "Pille")
+  b.spur:SetSize(28, 14)
+  b.spur:SetPoint("LEFT", 0, 0)
+  b.knauf = b:CreateTexture(nil, "OVERLAY")
+  b.knauf:SetTexture(MEDIA .. "Kreis")
+  b.knauf:SetSize(10, 10)
+  b.name = S.schrift(b, "GameFontHighlightSmall", M.text)
+  b.name:SetPoint("LEFT", b.spur, "RIGHT", 8, 0)
+  b.name:SetPoint("RIGHT", -30, 0)
+  b.name:SetJustifyH("LEFT")
+  b.name:SetWordWrap(false)
   b.name:SetText(text)
-  b.menge = S.schrift(b, "GameFontHighlightSmall", F.leise)
+  b.menge = S.schrift(b, "GameFontHighlightSmall", M.leise)
   b.menge:SetPoint("RIGHT", -4, 0)
   function b:Setzen(an)
     self.an = an and true or false
-    self.fuellung:SetShown(self.an)
-    S.randFarbe(self.kasten, self.an and F.akzent or F.rand)
+    self.knauf:ClearAllPoints()
+    self.knauf:SetPoint("CENTER", self.spur, "CENTER", self.an and 7 or -7, 0)
+    self.spur:SetVertexColor(rgba(self.an and M.goldRand or M.aus))
+    self.knauf:SetVertexColor(rgba(self.an and M.gold or M.leise))
   end
+  b:Setzen(false)
   b:SetScript("OnClick", function(self)
     S.klick()
     beiKlick(self, not self.an)
   end)
-  b:HookScript("OnEnter", function(self) S.randFarbe(self.kasten, S.heller(F.akzent)) end)
-  b:HookScript("OnLeave", function(self) S.randFarbe(self.kasten, self.an and F.akzent or F.rand) end)
+  b:HookScript("OnEnter", function(self) self.name:SetTextColor(1, 1, 1, 1) end)
+  b:HookScript("OnLeave", function(self) self.name:SetTextColor(rgba(M.text)) end)
   S.tooltip(b, text, hilfe)
   return b
 end
 
--- Auswahl aus mehreren Werten, einer davon aktiv. Mit den runden Auswahlknöpfen des Spiels, wenn
--- es sie gibt, sonst als Leiste mit Feldern.
+-- Auswahl aus mehreren Werten, einer davon aktiv: eine Leiste mit Feldern, feine Goldkante, das
+-- gewählte Feld dunkelgolden mit goldener Schrift.
 function S.segmente(parent, breite, optionen, beiWahl)
-  local probe = S.vorlage("CheckButton", parent, "UIRadioButtonTemplate")
-  if probe then
-    probe:Hide()
-    local f = CreateFrame("Frame", nil, parent)
-    f:SetSize(breite, 22)
-    local teil = breite / #optionen
-    f.knoepfe = {}
-    for i, o in ipairs(optionen) do
-      local b = CreateFrame("Button", nil, f)
-      b:SetSize(teil, 22)
-      b:SetPoint("LEFT", f, "LEFT", (i - 1) * teil, 0)
-      b.radio = S.vorlage("CheckButton", b, "UIRadioButtonTemplate")
-      b.radio:SetSize(16, 16)
-      b.radio:SetPoint("LEFT", 0, 0)
-      b.radio:EnableMouse(false)
-      b.text = S.schrift(b, "GameFontHighlightSmall")
-      b.text:SetPoint("LEFT", b.radio, "RIGHT", 3, 0)
-      b.text:SetText(o.text)
-      b.wert = o.wert
-      b:SetScript("OnClick", function() S.klick() beiWahl(o.wert) end)
-      b:HookScript("OnEnter", function(self) if self.radio.LockHighlight then self.radio:LockHighlight() end end)
-      b:HookScript("OnLeave", function(self) if self.radio.UnlockHighlight then self.radio:UnlockHighlight() end end)
-      S.tooltip(b, o.text, o.hilfe)
-      f.knoepfe[i] = b
-    end
-    function f:Setzen(wert)
-      self.wert = wert
-      for _, b in ipairs(self.knoepfe) do b.radio:SetChecked(b.wert == wert) end
-    end
-    return f
-  end
-  local f = S.kasten(parent, "Frame", F.flaeche, F.rand)
+  local f = S.karte(parent, "Frame", M.grund, M.goldRand)
   f:SetSize(breite, 22)
   local teil = (breite - 2) / #optionen
   f.knoepfe = {}
@@ -317,12 +315,19 @@ function S.segmente(parent, breite, optionen, beiWahl)
     b:SetPoint("LEFT", f, "LEFT", 1 + (i - 1) * teil, 0)
     b.grund = b:CreateTexture(nil, "ARTWORK")
     b.grund:SetAllPoints()
+    if i > 1 then
+      local strich = b:CreateTexture(nil, "OVERLAY")
+      strich:SetWidth(1)
+      strich:SetPoint("TOPLEFT", 0, 0)
+      strich:SetPoint("BOTTOMLEFT", 0, 0)
+      strich:SetColorTexture(rgba(M.goldRand))
+    end
     b.text = S.schrift(b, "GameFontHighlightSmall")
     b.text:SetPoint("CENTER")
     b.text:SetText(o.text)
-    b.wert, b.farbe = o.wert, o.farbe or F.akzent
+    b.wert, b.farbe = o.wert, o.farbe or M.aktiv
     b:SetScript("OnClick", function() S.klick() beiWahl(o.wert) end)
-    b:HookScript("OnEnter", function(self) self.text:SetTextColor(rgba(F.text)) end)
+    b:HookScript("OnEnter", function(self) self.text:SetTextColor(rgba(M.text)) end)
     b:HookScript("OnLeave", function() f:Setzen(f.wert) end)
     S.tooltip(b, o.text, o.hilfe)
     f.knoepfe[i] = b
@@ -332,73 +337,60 @@ function S.segmente(parent, breite, optionen, beiWahl)
     for _, b in ipairs(self.knoepfe) do
       local an = b.wert == wert
       if an then b.grund:SetColorTexture(rgba(b.farbe)) else b.grund:SetColorTexture(0, 0, 0, 0) end
-      b.text:SetTextColor(rgba(an and F.text or F.leise))
+      b.text:SetTextColor(rgba(an and M.gold or M.leise))
     end
   end
   return f
 end
 
--- Großer Knopf. Aussehen(text, farbe, an) setzt Text, Farbe und ob er klickbar ist.
--- Gibt es den roten Knopf des Spiels, sieht er so aus (die Farbe gilt dann nicht).
+-- Großer Knopf. Aussehen(text, farbe, an) setzt Text, Rand und ob er klickbar ist. Dunkelgold mit
+-- goldener Schrift, die Farbe färbt den Rand.
 function S.knopf(parent, breite, hoehe)
-  local echt = S.vorlage("Button", parent, "UIPanelButtonTemplate")
-  if echt then
-    echt:SetSize(breite, hoehe or 30)
-    echt.text = knopfSchrift(echt)
-    function echt:Aussehen(text, farbe, an)
-      self.text:SetText(text)
-      self.farbe = farbe
-      if an then self:Enable() else self:Disable() end
-    end
-    echt:Aussehen("", F.akzent, true)
-    return echt
-  end
-  local b = S.kasten(parent, "Button", F.akzent, F.akzent)
+  local b = S.karte(parent, "Button", M.aktiv, M.goldRand)
   b:SetSize(breite, hoehe or 30)
-  b.text = S.schrift(b, "GameFontHighlight", F.text)
+  b.text = S.schrift(b, "GameFontNormal", M.gold)
   b.text:SetPoint("CENTER")
-  b:HookScript("OnEnter", function(self) if self:IsEnabled() then S.grundFarbe(self, S.heller(self.farbe or F.akzent)) end end)
-  b:HookScript("OnLeave", function(self) if self:IsEnabled() then S.grundFarbe(self, self.farbe or F.akzent) end end)
+  b:HookScript("OnEnter", function(self) if self:IsEnabled() then S.randFarbe(self, M.gold) end end)
+  b:HookScript("OnLeave", function(self) if self:IsEnabled() then S.randFarbe(self, self.farbe or M.goldRand) end end)
   function b:Aussehen(text, farbe, an)
     self.text:SetText(text)
     self.farbe = farbe
     if an then
       self:Enable()
-      S.grundFarbe(self, farbe)
-      S.randFarbe(self, farbe)
-      self.text:SetTextColor(rgba(F.text))
+      S.grundFarbe(self, M.aktiv)
+      S.randFarbe(self, farbe or M.goldRand)
+      self.text:SetTextColor(rgba(M.gold))
     else
       self:Disable()
-      S.grundFarbe(self, F.flaeche)
-      S.randFarbe(self, F.rand)
-      self.text:SetTextColor(rgba(F.leise))
+      S.grundFarbe(self, M.karte)
+      S.randFarbe(self, M.kartenRand)
+      self.text:SetTextColor(rgba(M.leise))
     end
   end
-  b:Aussehen("", F.akzent, true)
+  b:Aussehen("", nil, true)
   return b
 end
 
--- Knopf für Nebenaktionen: der rote Knopf des Spiels, sonst schlicht mit Rahmen
+-- Knopf für Nebenaktionen: dunkel mit feiner Goldkante und heller Goldschrift, beim Überfahren heller
 function S.textKnopf(parent, text, breite, beiKlick)
-  local echt = S.vorlage("Button", parent, "UIPanelButtonTemplate")
-  if echt then
-    echt:SetSize(breite, 22)
-    echt.text = knopfSchrift(echt, "GameFontNormalSmall")
-    echt.text:SetText(text)
-    echt:SetScript("OnClick", function(self) S.klick() beiKlick(self) end)
-    function echt:Aktiv(an) if an then self:Enable() else self:Disable() end end
-    return echt
-  end
-  local b = S.kasten(parent, "Button", F.flaeche, F.rand)
+  local b = S.karte(parent, "Button", M.karte, M.goldRand)
   b:SetSize(breite, 22)
-  b.text = S.schrift(b, "GameFontHighlightSmall", F.text)
+  b.text = S.schrift(b, "GameFontNormalSmall", M.goldText)
   b.text:SetPoint("CENTER")
   b.text:SetText(text)
-  b:HookScript("OnEnter", function(self) if self:IsEnabled() then S.randFarbe(self, F.akzent) end end)
-  b:HookScript("OnLeave", function(self) S.randFarbe(self, self.randFarbe or F.rand) end)
+  b:HookScript("OnEnter", function(self)
+    if self:IsEnabled() then
+      S.randFarbe(self, M.gold)
+      S.grundFarbe(self, M.karteHell)
+    end
+  end)
+  b:HookScript("OnLeave", function(self)
+    S.randFarbe(self, self.randFarbe or M.goldRand)
+    S.grundFarbe(self, M.karte)
+  end)
   b:SetScript("OnClick", function(self) S.klick() beiKlick(self) end)
   function b:Aktiv(an)
-    if an then self:Enable() self.text:SetTextColor(rgba(F.text)) else self:Disable() self.text:SetTextColor(rgba(F.leise)) end
+    if an then self:Enable() self.text:SetTextColor(rgba(M.goldText)) else self:Disable() self.text:SetTextColor(rgba(M.leise)) end
   end
   return b
 end
@@ -498,7 +490,7 @@ function S.liste(parent, breite, hoehe, zeilenHoehe, bauen)
   end
   f.balken = f:CreateTexture(nil, "OVERLAY")
   f.balken:SetWidth(3)
-  f.balken:SetColorTexture(F.akzent[1], F.akzent[2], F.akzent[3], 0.6)
+  f.balken:SetColorTexture(M.goldRand[1], M.goldRand[2], M.goldRand[3], 0.9)
   f.leer = S.absatz(f, breite - 20, F.leise)
   f.leer:SetPoint("TOPLEFT", 4, -6)
   f:EnableMouseWheel(true)
@@ -530,25 +522,17 @@ function S.liste(parent, breite, hoehe, zeilenHoehe, bauen)
   return f
 end
 
--- Zeile für Listen: Hintergrund beim Überfahren, zwei Textzeilen
--- Beim Überfahren leuchtet die Zeile wie ein Eintrag im Questlog des Spiels
-S.ZEILE_LICHT = "Interface\\QuestFrame\\UI-QuestTitleHighlight"
+-- Zeile für Listen: beim Überfahren ein heller Schimmer, ausgewählt dunkelgolden mit Goldstrich links
 function S.zeile(parent)
   local z = CreateFrame("Button", nil, parent)
   z.hell = z:CreateTexture(nil, "BACKGROUND")
   z.hell:SetAllPoints()
-  z.hell:SetTexture(S.ZEILE_LICHT)
-  if z.hell.SetBlendMode then z.hell:SetBlendMode("ADD") end
-  z.hell:SetAlpha(0.5)
+  z.hell:SetColorTexture(1, 1, 1, 0.06)
   z.hell:Hide()
 
-  -- Ausgewählt: die ganze Zeile leuchtet golden, wie ein angewählter Eintrag im Questlog
   z.wahl = z:CreateTexture(nil, "BACKGROUND", nil, 1)
   z.wahl:SetAllPoints()
-  z.wahl:SetTexture(S.ZEILE_LICHT)
-  if z.wahl.SetBlendMode then z.wahl:SetBlendMode("ADD") end
-  z.wahl:SetVertexColor(1, 0.82, 0.3)
-  z.wahl:SetAlpha(0.55)
+  z.wahl:SetColorTexture(rgba(M.aktiv))
   z.wahl:Hide()
   z:HookScript("OnEnter", function(self) self.hell:Show() end)
   z:HookScript("OnLeave", function(self) self.hell:Hide() end)
@@ -559,17 +543,17 @@ end
 -- Auswahlfeld: Knopf mit Text und Pfeil. Ein Klick öffnet eine Aufklappliste darunter.
 -- eintraege(): { { wert, text, farbe, info }, ... }, beiWahl(wert)
 function S.auswahl(parent, breite, eintraege, beiWahl)
-  local b = S.kasten(parent, "Button", F.flaeche, F.rand)
+  local b = S.karte(parent, "Button", M.karte, M.goldRand)
   b:SetSize(breite, 22)
-  b.text = S.schrift(b, "GameFontHighlightSmall", F.text)
+  b.text = S.schrift(b, "GameFontHighlightSmall", M.text)
   b.text:SetPoint("LEFT", 8, 0)
   b.text:SetWidth(breite - 30)
   b.text:SetJustifyH("LEFT")
   b.text:SetWordWrap(false)
-  b.pfeil = S.winkel(b, F.leise)
+  b.pfeil = S.winkel(b, M.leise)
   b.pfeil:SetPoint("RIGHT", -8, 0)
-  b:HookScript("OnEnter", function(self) S.randFarbe(self, F.akzent) self.pfeil:Farbe(F.akzent) end)
-  b:HookScript("OnLeave", function(self) S.randFarbe(self, F.rand) self.pfeil:Farbe(F.leise) end)
+  b:HookScript("OnEnter", function(self) S.randFarbe(self, M.gold) self.pfeil:Farbe(M.gold) end)
+  b:HookScript("OnLeave", function(self) S.randFarbe(self, M.goldRand) self.pfeil:Farbe(M.leise) end)
   b:SetScript("OnClick", function(self)
     S.klick()
     S.aufklappen(self, breite, eintraege(), beiWahl)
@@ -587,7 +571,7 @@ local AUF_ZEILE, AUF_MAX = 22, 10
 local auf
 function S.aufklappen(anker, breite, eintraege, beiWahl)
   if not auf then
-    auf = S.kasten(UIParent, "Frame", F.grund, F.akzent, "HopAndSeekAuswahl")
+    auf = S.karte(UIParent, "Frame", M.grund, M.goldRand, "HopAndSeekAuswahl")
     auf:SetFrameStrata("FULLSCREEN_DIALOG")
     auf:SetClampedToScreen(true)
     auf:EnableMouse(true)
@@ -649,33 +633,26 @@ function S.aufklappen(anker, breite, eintraege, beiWahl)
   end
 end
 
--- Eingabefeld für kurze Texte (Profilnamen). beiEnter(text) beim Bestätigen mit Enter.
--- Eingabefeld des Spiels (InputBoxTemplate), sonst ein Kasten wie die anderen
+-- Eingabefeld für kurze Texte (Profilnamen). beiEnter(text) beim Bestätigen mit Enter. Dunkel mit
+-- feinem Rand, im Fokus golden.
 function S.eingabe(parent, breite, maxZeichen, beiEnter)
-  local e = S.vorlage("EditBox", parent, "InputBoxTemplate")
-  local echt = e ~= nil
-  if e then
-    e:SetSize(breite - 6, 20)
-  else
-    e = CreateFrame("EditBox", nil, parent, "BackdropTemplate")
-    e:SetSize(breite, 22)
-    if e.SetBackdrop then
-      e:SetBackdrop(S.KASTEN)
-      e:SetBackdropColor(rgba(F.flaeche))
-      e:SetBackdropBorderColor(rgba(F.rand))
-    end
+  local e = CreateFrame("EditBox", nil, parent, "BackdropTemplate")
+  e:SetSize(breite, 22)
+  if e.SetBackdrop then
+    e:SetBackdrop(S.FLACH)
+    e:SetBackdropColor(rgba(M.grund))
+    e:SetBackdropBorderColor(rgba(M.kartenRand))
   end
   e:SetAutoFocus(false)
   e:SetMaxLetters(maxZeichen or 24)
   if GameFontHighlightSmall then e:SetFontObject(GameFontHighlightSmall) end
-  -- Die Vorlage des Spiels hat ihren Rand schon außen, der eigene Kasten braucht Abstand innen
-  if echt then e:SetTextInsets(0, 0, 0, 0) else e:SetTextInsets(8, 8, 0, 0) end
+  e:SetTextInsets(8, 8, 0, 0)
   e:SetScript("OnEnterPressed", function(self)
     self:ClearFocus()
     beiEnter(self:GetText() or "")
   end)
   e:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-  e:HookScript("OnEditFocusGained", function(self) S.randFarbe(self, F.akzent) end)
-  e:HookScript("OnEditFocusLost", function(self) S.randFarbe(self, F.rand) end)
+  e:HookScript("OnEditFocusGained", function(self) S.randFarbe(self, M.goldRand) end)
+  e:HookScript("OnEditFocusLost", function(self) S.randFarbe(self, M.kartenRand) end)
   return e
 end

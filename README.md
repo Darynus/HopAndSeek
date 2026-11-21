@@ -15,13 +15,15 @@ One switch per jump, nothing happens on its own.</p>
 
 You love hopping through Azeroth and grabbing every herb and every ore vein on the way? Then Hop & Seek is your new best friend. Every gatherer knows the struggle: one tracking at a time. Most of us glued a cast sequence macro to some key and pressed it until the finger hurt. Hop & Seek throws that macro out of the window: just jump. Every hop switches your minimap tracking. Be honest, you were jumping anyway.
 
-## New in 1.2
+## New in 1.3
 
-- **Next spot**: the game's own marker guides you to the nearest herb or ore vein you gathered before, and moves on after you gather there.
-- **Light pillar** over the herb, ore vein or creature to skin right in front of you, in three looks.
-- **Count what you gather**, with gold per hour and the value of your haul from Auctionator or Midas. Skinning counts too.
-- **Journal**: seeker points and ranks, a daily goal and streak, records, 23 badges and a field guide. Share it with your group.
-- **Time to train**: a reminder when your profession needs a trainer, the level you need, and the way to the nearest trainer.
+- **Radar**: your minimap as a large radar around your character, like a pilot's screen, with north, east, south and west. Only the game's own herbs and ore as dots, no land, right where you look. Turn it on with the radar button, `/hop radar` or your own key.
+- **Your spots on the radar and the minimap**: a bracket at every spot you know, with the icon of what grows there, yards and the time to get there. A dot in the bracket: the node is up. An empty bracket: someone was faster.
+- **Skill colors** like in the game: orange, yellow and green still give skill points, gray no more, red is above your skill. With the thresholds of WoW Forever.
+- **Names**: point at a bracket in the radar for its name, hold Alt for any other dot. New spots are remembered as you point at them.
+- **Arrow with Alt + click**: click a dot in the radar, and a golden arrow leads you straight there.
+- **New look**: a dark window with a fine gold edge, tabs on top and large numbers.
+- Next spot and the route are gone: the radar shows you the real nodes.
 
 ![How it works](images/hopandseek-1-ablauf.png)
 
@@ -45,10 +47,12 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 
 ## Find your next node
 
+- **Radar**: your minimap moves to the middle of your screen as a large, see-through radar around your character, with north, east, south and west at its edge. You see the game's own herb and ore dots where you look instead of up in the corner. It turns with you, clicks go through it into the world, and it fades during a fight. Turn it on with the radar button in the gathering window or the Gathered tab, `/hop radar` or your own key, which you set right in the Gathered tab. Your minimap goes back exactly as it was.
+- **Brackets at your spots**: Hop & Seek remembers every herb and ore vein you gather. In the radar and on your minimap, each spot gets a bracket with the icon of what usually grows there, the yards and the time to get there at your current speed. The middle stays free: a dot in the bracket means the node is up, an empty bracket means it was gathered or has not grown back yet.
+- **Skill colors**: the brackets are colored like the game does it: orange, yellow and green still give skill points, gray no more, red is above your skill.
+- **Names and new spots**: point at a bracket in the radar for its name. Hold Alt over any other dot to see what it is, and Hop & Seek remembers the spot. On your minimap, pointing at a new dot is enough.
+- **Arrow with Alt + click**: hold Alt and click a dot in the radar, and a golden arrow with a dotted line leads you straight there. It goes away when you arrive. The game does not tell add-ons where its dots are, so you pick the node, and the arrow never sends you to an empty spot on its own.
 - **Light pillar**: a beam of light over the herb, ore vein or creature to skin right in front of you, in three looks: a soft Glow, rising Fireflies or a clear Beam. Switch it on in Settings.
-- **Next spot**: Hop & Seek remembers every herb and ore vein you gather. Click the pin in the gathering window, type `/hop next` or press your key, and the game's own marker guides you to the nearest one, with the distance on your screen. Close to the spot the marker steps aside, so your minimap shows whether the node has grown back. Gather there, and it moves on to the next spot. Spots you gathered in the last ten minutes are skipped, and only kinds your professions can gather count.
-- **Route while gathering**: tick it in the Gathered tab, and after every node the marker moves on to the next spot by itself. Just gather and follow it, no click needed.
-- Set your key under *Esc > Options > Keybindings > AddOns > Hop & Seek*. Right-click the pin to end the guide.
 
 ## Make gathering a game
 
@@ -96,9 +100,10 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 | `/hop share` | share your journal with your group |
 | `/hop pillar` | switch the light pillar on or off |
 | `/hop pillar glow` | pick its look: `glow`, `fireflies` or `beam` |
-| `/hop next` | guide you to the nearest herb or ore vein you gathered before |
-| `/hop next stop` | end the guide |
 | `/hop trainer` | show the way to the nearest trainer, also `/hop trainer herbalism`, `mining` or `skinning` |
+| `/hop radar` | show your minimap as a large radar around your character, or put it back |
+| `/hop radar terrain` | show or hide the land in the radar |
+| `/hop radar test` | test a see-through mask, in case the land stays in the radar |
 | `/hop news` | show what is new |
 | `/hop debug` | show your tracking types and the self-check |
 | `/hop help` | list all commands |
@@ -106,7 +111,7 @@ Hop & Seek checks once whether switching works in your game and how long the coo
 ## Safe and fair
 
 - **One jump, at most one switch.** No timers, nothing happens without your key press.
-- **Only what you ask for.** Hop & Seek switches your minimap tracking. The light pillar turns on the game's interact highlight while it is on and puts your settings back when you switch it off. The guide and the trainer finder set the game's map pin only when you click, or after each node if you ticked the route. No spells, no macros, and the gathering counter only reads your loot window.
+- **Only what you ask for.** Hop & Seek switches your minimap tracking. The light pillar turns on the game's interact highlight while it is on and puts your settings back when you switch it off. The radar borrows your minimap while it is on and puts it back exactly as it was, also when you log out. The trainer finder sets the game's map pin only when you click. No spells, no macros, and the gathering counter only reads your loot window.
 - **Every game language:** tracking types are recognized by their spell IDs, never by names.
 - Free, no ads, MIT license.
 

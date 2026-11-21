@@ -12,7 +12,7 @@
 --     der Char hat gerade gekürschnert (Zauber-ID).
 -- Gezählt wird erst, wenn ein Platz im Beutefenster leer wird, also wirklich genommen ist.
 -- Die Sitzung gehört dem Char (Patrick, 13. Nov: nach dem Umloggen lief sie beim anderen Char
--- weiter), die Gesamtzahlen dem Account.
+-- weiter), die Gesamtzahlen dem Account. Ausloggen beendet sie (Patrick, 20. Nov), /reload nicht.
 -- Der Wert kommt aus Auctionator über dessen Schnittstelle für andere Add-ons (Auctionator.API.v1),
 -- sonst aus Midas (MidasAPI, MIT), nur wenn eins davon geladen ist. Andere Teile hängen sich mit
 -- ns.beimSammeln an (Journal, Sammelkarte, Berufe). Nur lesen und anzeigen, nichts geschieht von
@@ -64,8 +64,8 @@ function Z.Char()
 end
 
 -- Sitzung des Chars: { start, zuletzt (Serverzeit), menge = { [ID] = Anzahl },
--- knoten = { kraut, erz, leder } }. Gespeichert, damit ein /reload oder kurzes Ausloggen die
--- Sitzung nicht beendet.
+-- knoten = { kraut, erz, leder } }. Gespeichert, damit ein /reload die Sitzung nicht beendet.
+-- Ausloggen beendet sie (siehe PLAYER_ENTERING_WORLD unten).
 function Z:Sitzung()
   local k = Z.Char()
   local s = ns.db.sitzungen[k]
@@ -412,6 +412,24 @@ local function kistenSitzungWeg()
 end
 ns.beimStart(function()
   if C_Timer and C_Timer.After then C_Timer.After(8, kistenSitzungWeg) end
+end)
+
+-- Ausloggen beendet die Sitzung (Patrick, 20. Nov: „So eine Farming-Session soll natürlich auch,
+-- nachdem man sich ausgeloggt hat, beendet werden“). Beim Ausloggen selbst kann das Add-on einen
+-- /reload nicht vom Ausloggen unterscheiden, beim Einloggen schon: PLAYER_ENTERING_WORLD meldet
+-- isInitialLogin (frisch eingeloggt, auch nach einem Verbindungsabbruch) und isReloadingUi. Frisch
+-- eingeloggt: Die alte Sitzung dieses Chars ist vorbei, mit Bilanz im Chat wie nach 30 Minuten Pause.
+-- Nennt das Spiel beides nicht, bleibt es bei den 30 Minuten.
+ns.Ereignis("PLAYER_ENTERING_WORLD", function(frischEingeloggt, neuGeladen)
+  if frischEingeloggt ~= true or neuGeladen or not ns.db then return end
+  local k = Z.Char()
+  local s = ns.db.sitzungen[k]
+  if s and s.start then
+    Z:Bilanz(s)
+    ns.db.sitzungen[k] = nil
+    Z:Sitzung()
+    ns.aktualisieren()
+  end
 end)
 
 ns.beimStart(function()

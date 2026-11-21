@@ -1,7 +1,6 @@
 <!-- Tasten für Hop & Seek (Esc > Optionen > Tastaturbelegung > AddOns). Ein Tastendruck ist ein Klick
-     auf den unsichtbaren Knopf des Wegweisers (Wegweiser.lua): links zur nächsten bekannten
-     Sammelstelle, rechts Wegweiser aus. -->
+     auf den unsichtbaren Knopf des Radars (Radar.lua): Radar an oder aus. Die Tasten für Next spot
+     gibt es seit 1.3.0 nicht mehr. -->
 <Bindings>
-	<Binding name="CLICK HopAndSeekNextSpot:LeftButton" header="HOPANDSEEK" category="ADDONS"/>
-	<Binding name="CLICK HopAndSeekNextSpot:RightButton" category="ADDONS"/>
+	<Binding name="CLICK HopAndSeekRadar:LeftButton" header="HOPANDSEEK" category="ADDONS"/>
 </Bindings>

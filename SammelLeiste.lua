@@ -16,14 +16,6 @@ local MAX_FUNDE = 3
 local KOPF, GROSS, INFO, UNTEN, BERUF = 18, 22, 16, 22, 14
 local INNEN = BREITE - 2 * RAND - 8
 
--- Nadel des Spiels für den Wegweiser (Wegweiser.lua): blass, solange er aus ist. Fehlt der Atlas,
--- eine Karte als Symbol.
-local PIN = { [false] = "Waypoint-MapPin-Untracked", [true] = "Waypoint-MapPin-Tracked" }
-local function pinZeigen(b, an)
-  if b.mitAtlas then b.icon:SetAtlas(PIN[an]) else b.icon:SetDesaturated(not an) end
-  b.icon:SetAlpha(an and 1 or 0.75)
-end
-
 local function merken(f)
   local punkt, _, relativ, x, y = f:GetPoint()
   ns.db.sammelLeiste = { punkt = punkt, relativ = relativ, x = x, y = y }
@@ -97,27 +89,23 @@ function G:Bauen()
   f.zu:SetSize(18, 18)
   f.zu:SetPoint("TOPRIGHT", -2, -2)
   S.tooltip(f.zu, L.GATHER_BAR_CLOSE, L.GATHER_BAR_CLOSE_HELP)
-  -- Wegweiser zur nächsten bekannten Stelle: Linksklick die nächste, Rechtsklick aus
-  f.weiter = CreateFrame("Button", nil, f)
-  f.weiter:SetSize(16, 16)
-  f.weiter:SetPoint("RIGHT", f.zu, "LEFT", -2, 0)
-  f.weiter:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-  f.weiter.icon = f.weiter:CreateTexture(nil, "ARTWORK")
-  f.weiter.icon:SetAllPoints()
-  f.weiter.mitAtlas = f.weiter.icon.SetAtlas and C_Texture and C_Texture.GetAtlasInfo
-    and C_Texture.GetAtlasInfo(PIN[false]) ~= nil or false
-  if not f.weiter.mitAtlas then
-    f.weiter.icon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
-    f.weiter.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-  end
-  pinZeigen(f.weiter, false)
-  f.weiter:SetScript("OnClick", function(_, knopf)
+  -- Radar (Radar.lua): die Minikarte groß um den Charakter, blass solange es aus ist. Bis 1.3.0 stand
+  -- hier noch die Nadel für Next spot.
+  f.radar = CreateFrame("Button", nil, f)
+  f.radar:SetSize(16, 16)
+  f.radar:SetPoint("RIGHT", f.zu, "LEFT", -2, 0)
+  f.radar.icon = f.radar:CreateTexture(nil, "ARTWORK")
+  f.radar.icon:SetAllPoints()
+  f.radar.icon:SetTexture("Interface\\Icons\\INV_Misc_Spyglass_03")
+  f.radar.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  f.radar.icon:SetDesaturated(true)
+  f.radar:SetScript("OnClick", function()
     S.klick()
-    if knopf == "RightButton" then ns.Wegweiser:Aus() else ns.Wegweiser:Weiter() end
+    ns.Radar:Umschalten()
   end)
-  S.tooltip(f.weiter, L.NEXT_BUTTON, L.NEXT_BUTTON_HELP)
+  S.tooltip(f.radar, L.RADAR_BUTTON, function() return L.RADAR_BUTTON_HELP .. "\n\n" .. ns.Radar.TastenText() end)
   f.zeit = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  f.zeit:SetPoint("RIGHT", f.weiter, "LEFT", -4, 0)
+  f.zeit:SetPoint("RIGHT", f.radar, "LEFT", -4, 0)
 
   -- Groß: Gold pro Stunde (oder bisheriger Wert, oder Hinweis auf Auctionator)
   f.gold = S.schrift(f, "GameFontHighlightLarge", F.erfolg)
@@ -213,9 +201,10 @@ function G:Aktualisieren()
   local st = Z:Stand()
   local f = self.rahmen
   f.zeit:SetText(ns.dauer(st.dauer))
-  if f.weiter.an ~= ns.Wegweiser.Laeuft() then
-    f.weiter.an = ns.Wegweiser.Laeuft()
-    pinZeigen(f.weiter, f.weiter.an)
+  local radar = ns.Radar and ns.Radar.an or false
+  if f.radar.an ~= radar then
+    f.radar.an = radar
+    f.radar.icon:SetDesaturated(not radar)
   end
   if st.wertProStunde then
     f.gold:SetText(string.format(L.GATHER_BAR_GOLD_RATE, ns.geld(st.wertProStunde)))

@@ -1,5 +1,20 @@
 # Hop & Seek changelog
 
+## 1.3.0 (2026-11-20)
+
+- **Radar**: your minimap as a large radar in the middle of your screen, around your character, with north, east, south and west at its edge. It shows the game's own herbs and ore as dots without the land, so you see them where you look instead of in the corner. Where the game cannot hide the land, the whole minimap is see-through. It turns with you, clicks go through it into the world, and it fades during a fight. Turn it on and off with the radar button in the gathering window or the Gathered tab, `/hop radar` or a key (Esc > Options > Keybindings > AddOns > Hop & Seek). Your minimap goes back exactly as it was.
+- **Names in the radar**: point at a bracket, and its name appears. Hold Alt over any other dot to see what it is. The hint below the radar stays until the game has shown you a name once.
+- **New spots with Alt**: hold Alt over a dot you have never gathered, and Hop & Seek remembers the spot. From then on it has its bracket with yards and time. Herbs are known by their name right away, ore veins after you once stood in front of one with the interact key.
+- **Distance and time**: brackets in the radar mark the spots you gathered before, with the icon of what usually grows there, yards and the time to get there at your current speed. A dot in a bracket means the node is up. An empty bracket means someone was faster or it has not grown back yet.
+- **Skill colors**: the brackets are colored like the game does it: orange, yellow and green still give skill points, gray no more, red is above your skill.
+- **Arrow with Alt + click**: in the radar, hold Alt and click a dot. A golden arrow and a dotted line lead you straight there, with yards and time, and go away when you get there. Alt + right-click clears it. The game does not tell add-ons where its dots are, so you pick the node. Switch it off in the Gathered tab.
+- **Spots on your minimap**: your minimap in the corner shows your spots too, as a bracket in the color of your skill with a small icon of what grows there. The middle stays free, so the game's own dot is never covered. Point at a new dot on your minimap, and Hop & Seek remembers the spot. Switch it off in the Gathered tab.
+- **Radar key**: set it right in the Gathered tab. Click the key button and press a key, right-click removes it.
+- Fix: in the Gathered tab, the last session no longer overlaps the line above it.
+- **New look**: the Hop & Seek window is dark with a fine gold edge, tabs on top, cards and tiles with large numbers, and switches instead of check boxes.
+- Logging out ends your gathering session, with the summary in your chat. A `/reload` keeps it going.
+- **Removed**: Next spot, the route while gathering and their key bindings. The radar shows you the nodes better.
+
 ## 1.2.3 (2026-11-20)
 
 - **Next spot and the route**: close to the spot, the game's marker steps aside. On the minimap it sat right on top of the node and hid it, so you could not see whether the node had grown back. Now you see the node itself, or that it is not there yet. Walk on without gathering, and the marker comes back.

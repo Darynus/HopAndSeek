@@ -56,8 +56,15 @@ local STANDARD = {
   meldungen = true,     -- kleine Meldungen für Abzeichen, Rang, Rekorde, Funde (Meldung.lua)
   erfolgTon = true,     -- mit einem Ton des Spiels
   erfolge = {},         -- Rang, Tagesziel, Rekorde, Abzeichen, Sammelbuch (Felder in Erfolge.lua)
-  knotenKarte = {},     -- [Karten-ID] = { { x, y, art, n, inhalt, zuletzt } }
-  route = false,        -- Wegweiser nach jedem Knoten von selbst (Wegweiser.lua), ersetzt den Quest-Pfeil
+  knotenKarte = {},     -- [Karten-ID] = { { x, y, art, n, inhalt, zuletzt, (vom Radar: name, fund, gesehen) } }
+  knotenNamen = {},     -- [Name im Spiel] = Objekt-ID, gelernt über die Zielhilfe (Radar erkennt Adern im Tooltip)
+  objektFunde = {},     -- [Objekt-ID] = { [Gegenstand] = Anzahl }: was ein Kraut oder eine Ader bringt
+  radarDeckkraft = 0.6, -- Radar (Radar.lua): Deckkraft der Minikarte in der Bildschirmmitte (mit Gelände)
+  radarGelaende = false, -- Gelände im Radar zeigen (Standard: weglassen, wenn das Spiel es kann)
+  radarGroesse = 0.6,   -- Durchmesser als Anteil der kürzeren Bildschirmseite
+  radarDrehen = true,   -- Radar dreht sich mit der Blickrichtung (Einstellung des Spiels, danach zurück)
+  radarPfeil = true,    -- im Radar ein Pfeil zur nächsten Stelle (Patrick, 20. Nov: „wie bei Rested XP“)
+  minikarteStellen = true, -- gemerkte Stellen auch auf der Minikarte in der Ecke (MiniKarte.lua)
   berufGemeldet = {},   -- ["Name-Realm"] = { [Fertigkeitslinie] = Stufe, zu der gemeldet wurde }
   freunde = {},         -- geteilte Journale der Gruppe (Teilen.lua)
   sitzungen = {},       -- ["Name-Realm"] = laufende Sitzung des Sammelzählers (je Char)
@@ -120,6 +127,10 @@ ns.Ereignis("ADDON_LOADED", function(name)
   ns.bestehend = HopAndSeekDB ~= nil
   HopAndSeekDB = HopAndSeekDB or {}
   ergaenzen(HopAndSeekDB, STANDARD)
+  -- Felder von Next spot (bis 1.3.0, Patrick, 20. Nov: „bringt keinen Mehrwert“)
+  HopAndSeekDB.route, HopAndSeekDB.wegweiserDiagnose = nil, nil
+  -- Bis 1.3.0 zählte schon ein Druck auf Alt (auch für Alt+Tab), jetzt erst ein gezeigter Name
+  HopAndSeekDB.radarAltGenutzt = nil
   ns.db = HopAndSeekDB
 end)
 

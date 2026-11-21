@@ -12,8 +12,10 @@ local BEFEHLE = {
   { "journal", L.CMD_JOURNAL },
   { "share", L.CMD_SHARE },
   { "pillar [glow | fireflies | beam]", L.CMD_PILLAR },
-  { "next [stop]", L.CMD_NEXT },
   { "trainer [herbalism | mining | skinning]", L.CMD_TRAINER },
+  { "radar", L.CMD_RADAR },
+  { "radar terrain", L.CMD_RADAR_TERRAIN },
+  { "radar test", L.CMD_RADAR_TEST },
   { "news", L.CMD_NEWS },
   { "debug", L.CMD_DEBUG },
   { "help", L.CMD_HELP },
@@ -52,6 +54,12 @@ local function debug()
     zeile(string.format("dead %s, loot %s, looted %s, plate %s, skinning %s", d.tot, d.beute, d.gepluendert, d.plakette, d.kuerschnern))
     zeile("professions: " .. table.concat(d.berufe, "; "))
   end
+  -- Radar und Sammelkarte: Gelände, Reichweite, Klammern, Kartengröße für die Meterangaben
+  local karte = ns.SammelKarte.Position()
+  local g = karte and ns.SammelKarte.Groesse(karte)
+  zeile(ns.Radar.Diagnose())
+  zeile(string.format("map %s size %s, spots on this map %d", tostring(karte),
+    g and string.format("%.0f x %.0f", g[1], g[2]) or "unknown", karte and #(ns.db.knotenKarte[karte] or {}) or 0))
   zeile(string.format("works %s, gcd %s, several %s, blocked %s, API %s", tostring(p.geht), tostring(p.gcd),
     tostring(p.mehrere), tostring(p.gesperrt), (ns.api("C_Minimap.SetTracking") and "C_Minimap")
     or (ns.api("SetTracking") and "SetTracking") or "none"))
@@ -91,14 +99,20 @@ SlashCmdList.HOPANDSEEK = function(eingabe)
     elseif ns.Lichtsaeule then
       ns.Lichtsaeule:Schalten(not ns.db.lichtsaeule)
     end
-  elseif wort == "next" then
-    local zusatz = string.lower(string.match(eingabe or "", "^%s*%S+%s+(%S+)") or "")
-    if zusatz == "stop" or zusatz == "off" then ns.Wegweiser:Aus() else ns.Wegweiser:Weiter() end
   elseif wort == "trainer" then
     local zusatz = string.lower(string.match(eingabe or "", "^%s*%S+%s+(%S+)") or "")
     local art = ({ herbalism = "kraut", herbs = "kraut", herb = "kraut", mining = "erz", ore = "erz",
       skinning = "leder", leather = "leder" })[zusatz]
     ns.Lehrer:Zeigen(art)
+  elseif wort == "radar" then
+    local zusatz = string.lower(string.match(eingabe or "", "^%s*%S+%s+(%S+)") or "")
+    if zusatz == "test" then
+      ns.Radar:MaskeTesten()
+    elseif zusatz == "terrain" then
+      ns.Radar:GelaendeUmschalten()
+    else
+      ns.Radar:Umschalten()
+    end
   elseif wort == "news" then
     ns.Neuigkeiten:Umschalten()
   elseif wort == "debug" then

@@ -1,16 +1,18 @@
 -- Hauptfenster: Status, Gathered, Journal, Settings, Help. Öffnen mit /hop, Minikarten-Knopf, Rechtsklick aufs Symbol
--- oder Optionen-Menü. Aussehen wie die Fenster des Spiels (Vorlage Campfire Buddy): Porträtrahmen,
--- versenkte Innenfläche, Reiter unten. Fehlt eine Vorlage, baut sich das Fenster flach selbst.
+-- oder Optionen-Menü. Seit 1.3.0 dunkel mit feiner Goldkante, Reiter oben, Abschnitte als Karten
+-- (Patrick, 20. Nov: die Vorlagen des Spiels sahen „sehr altbacken“ aus). Bis 1.2 Porträtrahmen,
+-- versenkte Innenfläche und Reiter unten aus den Vorlagen des Spiels.
 local ADDON, ns = ...
 local L, S = ns.L, ns.Stil
-local F, rgba = S.F, S.rgba
+local F, M, rgba = S.F, S.M, S.rgba
 local SU = ns.Suche
 
 local W = { seiten = {} }
 ns.Fenster = W
 
-local BREITE, HOEHE = 470, 480
-local X, OBEN, UNTEN = 18, -72, 18
+local BREITE, HOEHE = 480, 584
+local KOPF, REITER_H = 58, 30   -- Kopfzeile, darunter die Reiter
+local X, OBEN, UNTEN = 18, -100, 14
 local B = BREITE - X - 20
 
 local REITER = {
@@ -25,7 +27,6 @@ local function seite(schluessel)
   local f = CreateFrame("Frame", nil, W.rahmen)
   f:SetPoint("TOPLEFT", X, OBEN)
   f:SetSize(B, HOEHE + OBEN - UNTEN)
-  if W.echt then f:SetFrameLevel((W.rahmen:GetFrameLevel() or 1) + 4) end
   f:Hide()
   W.seiten[schluessel] = f
   return f
@@ -47,7 +48,7 @@ local function bauenStatus()
   f.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   -- Ohne aktive Suche das Symbol von Hop & Seek an derselben Stelle
   f.symbol = S.symbol(f, 36, f.icon)
-  f.name = S.schrift(f, "GameFontHighlightLarge", F.text)
+  f.name = S.schrift(f, "GameFontHighlightLarge", M.text)
   f.name:SetPoint("TOPLEFT", f.icon, "TOPRIGHT", 10, -2)
   f.zustand = S.absatz(f, B - 50, F.erfolg)
   f.zustand:SetPoint("TOPLEFT", f.name, "BOTTOMLEFT", 0, -4)
@@ -57,11 +58,11 @@ local function bauenStatus()
   S.tooltip(f.wechseln, L.BTN_SWITCH, L.BTN_SWITCH_HELP)
 
   S.ueberschrift(f, L.STATUS_CYCLE):SetPoint("TOPLEFT", 0, -78)
-  f.kreis = S.absatz(f, B, F.text, "GameFontHighlight")
+  f.kreis = S.absatz(f, B, M.text, "GameFontHighlight")
   f.kreis:SetPoint("TOPLEFT", 0, -98)
 
   S.ueberschrift(f, L.STATUS_CHECK):SetPoint("TOPLEFT", 0, -170)
-  f.pruefung = S.absatz(f, B, F.leise, "GameFontHighlightSmall")
+  f.pruefung = S.absatz(f, B, M.leise, "GameFontHighlightSmall")
   f.pruefung:SetPoint("TOPLEFT", 0, -190)
 
   -- Sammelberufe mit Stufe und je ein Knopf zum nächsten Lehrer (Lehrer.lua; Patrick, 13. Nov:
@@ -73,7 +74,7 @@ local function bauenStatus()
     local z = CreateFrame("Frame", nil, f)
     z:SetSize(B, 22)
     z:SetPoint("TOPLEFT", 0, -312 - (i - 1) * 25)
-    z.text = S.schrift(z, "GameFontHighlight", F.text)
+    z.text = S.schrift(z, "GameFontHighlight", M.text)
     z.text:SetPoint("LEFT", 0, 0)
     z.knopf = S.textKnopf(z, L.TRAINER_BUTTON, 130, function() ns.Lehrer:Zeigen(art) end)
     z.knopf:SetPoint("RIGHT", 0, 0)
@@ -133,10 +134,10 @@ local function bauenStatus()
             or ("|cff999999" .. string.format(L.STATUS_TRAIN_LEVEL, level) .. "|r"))
         end
         z.text:SetText(text)
-        z.text:SetTextColor(rgba(F.text))
+        z.text:SetTextColor(rgba(M.text))
       else
         z.text:SetText(string.format(L.STATUS_NOT_LEARNED, name))
-        z.text:SetTextColor(rgba(F.leise))
+        z.text:SetTextColor(rgba(M.leise))
       end
     end
   end
@@ -147,81 +148,113 @@ end
 local function bauenSammeln()
   local f = seite("sammeln")
   local Z = ns.Sammeln
-  S.ueberschrift(f, L.GATHER_SESSION):SetPoint("TOPLEFT", 0, 0)
-  f.seit = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  f.seit:SetPoint("TOPLEFT", 120, -2)
-  f.neu = S.textKnopf(f, L.BTN_GATHER_RESET, 110, function() Z:Neu() end)
+  -- Karte: diese Sitzung, mit Neustart, Summe, Rate (oder der letzten Sitzung) und den Funden
+  local k = S.karte(f, "Frame")
+  k:SetPoint("TOPLEFT", 0, 0)
+  k:SetSize(B, 180)
+  f.sitzung = k
+  local kopf = S.ueberschrift(k, L.GATHER_SESSION)
+  kopf:SetPoint("TOPLEFT", 12, -10)
+  f.seit = S.schrift(k, "GameFontHighlightSmall", M.leise)
+  f.seit:SetPoint("LEFT", kopf, "RIGHT", 10, 0)
+  f.neu = S.textKnopf(k, L.BTN_GATHER_RESET, 96, function() Z:Neu() end)
   f.neu:SetHeight(20)
-  f.neu:SetPoint("TOPRIGHT", 0, 2)
+  f.neu:SetPoint("TOPRIGHT", -10, -7)
   S.tooltip(f.neu, L.BTN_GATHER_RESET, L.BTN_GATHER_RESET_HELP)
-  f.summe = S.absatz(f, B, F.text, "GameFontHighlight")
-  f.summe:SetPoint("TOPLEFT", 0, -24)
-  f.rate = S.absatz(f, B, F.leise)
-  f.rate:SetPoint("TOPLEFT", 0, -44)
-
-  f.liste = S.liste(f, B, 24 * 5, 24, function(l)
+  f.summe = S.absatz(k, B - 24, M.text, "GameFontHighlight")
+  f.summe:SetPoint("TOPLEFT", 12, -34)
+  -- Direkt unter der Summe, wie hoch sie auch ist (Patrick, 20. Nov: zwei Zeilen lagen übereinander)
+  f.rate = S.absatz(k, B - 24, M.leise)
+  f.rate:SetPoint("TOPLEFT", f.summe, "BOTTOMLEFT", 0, -4)
+  f.liste = S.liste(k, B - 16, 24 * 4, 24, function(l)
     local z = S.zeile(l)
     z.icon = z:CreateTexture(nil, "ARTWORK")
     z.icon:SetSize(20, 20)
     z.icon:SetPoint("LEFT", 4, 0)
     z.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    z.name = S.schrift(z, "GameFontHighlight", F.text)
+    z.name = S.schrift(z, "GameFontHighlight", M.text)
     z.name:SetPoint("LEFT", 30, 0)
-    z.name:SetWidth(B - 190)
+    z.name:SetWidth(B - 200)
     z.name:SetJustifyH("LEFT")
     z.name:SetWordWrap(false)
-    z.anzahl = S.schrift(z, "GameFontHighlight", F.text)
+    z.anzahl = S.schrift(z, "GameFontHighlight", M.text)
     z.anzahl:SetPoint("RIGHT", -100, 0)
-    z.wert = S.schrift(z, "GameFontHighlightSmall", F.erfolg)
+    z.wert = S.schrift(z, "GameFontHighlightSmall", M.gold)
     z.wert:SetPoint("RIGHT", -10, 0)
     z:SetScript("OnEnter", function(self)
       if not self.eintrag then return end
+      self.hell:Show()
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
       if not pcall(GameTooltip.SetItemByID, GameTooltip, self.eintrag.id) then GameTooltip:SetText(tostring(self.eintrag.id)) end
       GameTooltip:Show()
     end)
-    z:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    z:SetScript("OnLeave", function(self) self.hell:Hide() GameTooltip:Hide() end)
     return z
   end)
-  f.liste:SetPoint("TOPLEFT", 0, -72)
+  f.liste:SetPoint("TOPLEFT", 8, -80)
 
-  S.ueberschrift(f, L.GATHER_TOTAL):SetPoint("TOPLEFT", 0, -206)
-  f.gesamt = S.absatz(f, B, F.text, "GameFontHighlight")
-  f.gesamt:SetPoint("TOPLEFT", 0, -226)
+  -- Alles bisher: vier Kacheln mit großen Zahlen, darunter woher es kam
+  S.ueberschrift(f, L.GATHER_TOTAL):SetPoint("TOPLEFT", 2, -190)
+  local breite = math.floor((B - 3 * 8) / 4)
+  f.kacheln = {
+    S.kachel(f, breite, 44, L.TILE_HERBS, "Interface\\Icons\\INV_Misc_Flower_02"),
+    S.kachel(f, breite, 44, L.TILE_ORE, "Interface\\Icons\\INV_Ore_Copper_01"),
+    S.kachel(f, breite, 44, L.TILE_LEATHER, "Interface\\Icons\\INV_Misc_LeatherScrap_03"),
+    S.kachel(f, breite, 44, L.TILE_WORTH, "Interface\\Icons\\INV_Misc_Coin_01"),
+  }
+  for i, kachel in ipairs(f.kacheln) do kachel:SetPoint("TOPLEFT", (i - 1) * (breite + 8), -208) end
+  f.gesamt = S.absatz(f, B, M.leise)
+  f.gesamt:SetPoint("TOPLEFT", 2, -258)
 
+  -- Radar: Schalter, Taste, wie viele Stellen bekannt sind; darunter Pfeil und Stellen auf der Minikarte
+  local rk = S.karte(f, "Frame")
+  rk:SetPoint("TOPLEFT", 0, -278)
+  rk:SetSize(B, 58)
+  f.radar = S.haken(rk, 130, L.RADAR_BUTTON, function() return L.RADAR_BUTTON_HELP .. "\n\n" .. ns.Radar.TastenText() end,
+    function(_, an) ns.Radar:Umschalten(an) end)
+  f.radar:SetPoint("TOPLEFT", 10, -5)
+  -- Taste fürs Radar gleich daneben belegen (Patrick: „den Radar-Hotkey-Button habe ich noch nicht gesehen“)
+  f.taste = S.textKnopf(rk, "", 120, function() end)
+  f.taste:SetHeight(20)
+  f.taste:SetPoint("LEFT", f.radar, "RIGHT", 6, 0)
+  ns.Radar.TastenKnopf(f.taste)
+  S.tooltip(f.taste, L.RADAR_KEY_BUTTON, L.RADAR_KEY_BUTTON_HELP)
+  f.stellen = S.schrift(rk, "GameFontHighlightSmall", M.leise)
+  f.stellen:SetPoint("RIGHT", rk, "TOPRIGHT", -10, -16)
+  local halb = math.floor((B - 30) / 2)
+  f.pfeil = S.haken(rk, halb, L.RADAR_ARROW, L.RADAR_ARROW_HELP, function(_, an)
+    ns.db.radarPfeil = an
+    ns.aktualisieren()
+  end)
+  f.pfeil:SetPoint("TOPLEFT", 10, -31)
+  f.mini = S.haken(rk, halb, L.MINIMAP_SPOTS, L.MINIMAP_SPOTS_HELP, function(_, an)
+    ns.db.minikarteStellen = an
+    ns.aktualisieren()
+  end)
+  f.mini:SetPoint("TOPLEFT", 20 + halb, -31)
+
+  -- Schalter fürs Zählen
   f.zaehlen = S.haken(f, B, L.SET_GATHER, L.SET_GATHER_HELP, function(_, an)
     ns.db.zaehlen = an
     ns.aktualisieren()
   end)
-  f.zaehlen:SetPoint("TOPLEFT", 0, -260)
+  f.zaehlen:SetPoint("TOPLEFT", 2, -344)
   f.zeigen = S.haken(f, B, L.SET_GATHER_ICON, L.SET_GATHER_ICON_HELP, function(_, an)
     ns.db.zaehlerZeigen = an
     ns.aktualisieren()
   end)
-  f.zeigen:SetPoint("TOPLEFT", 0, -284)
+  f.zeigen:SetPoint("TOPLEFT", 2, -366)
   f.leiste = S.haken(f, B, L.SET_GATHER_BAR, L.SET_GATHER_BAR_HELP, function(_, an)
     ns.db.sammelLeisteZeigen = an
     if an then ns.SammelLeiste.zuBis = nil end
     ns.aktualisieren()
   end)
-  f.leiste:SetPoint("TOPLEFT", 0, -308)
-  -- Wegweiser zur nächsten bekannten Stelle (Wegweiser.lua), daneben wie viele Stellen bekannt sind
-  f.weiter = S.textKnopf(f, L.NEXT_BUTTON, 110, function() ns.Wegweiser:Weiter() end)
-  f.weiter:SetPoint("TOPLEFT", 0, -332)
-  S.tooltip(f.weiter, L.NEXT_BUTTON, L.NEXT_WINDOW_HELP)
-  -- Route: nach jedem Knoten von selbst weiter (Patrick, 13. Nov: nicht übers Menü)
-  f.route = S.haken(f, 190, L.SET_ROUTE, L.SET_ROUTE_HELP, function(_, an)
-    ns.db.route = an
-    ns.aktualisieren()
-  end)
-  f.route:SetPoint("LEFT", f.weiter, "RIGHT", 12, 0)
-  f.stellen = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  f.stellen:SetPoint("TOPRIGHT", 0, -337)
+  f.leiste:SetPoint("TOPLEFT", 2, -388)
   -- Preisquelle (Patrick, 13. Nov: Auctionator als Standard, Midas nur auf Wunsch)
-  local preise = S.schrift(f, "GameFontHighlightSmall", F.leise)
-  preise:SetPoint("TOPLEFT", 0, -364)
+  local preise = S.schrift(f, "GameFontHighlightSmall", M.leise)
+  preise:SetPoint("TOPLEFT", 2, -422)
   preise:SetText(L.PRICES)
-  f.preis = S.segmente(f, B - 50, {
+  f.preis = S.segmente(f, B - 60, {
     { wert = "auctionator", text = L.PRICE_AUCTIONATOR, hilfe = L.PRICE_HELP },
     { wert = "midas", text = L.PRICE_MIDAS, hilfe = L.PRICE_HELP },
     { wert = "beide", text = L.PRICE_BOTH, hilfe = L.PRICE_HELP },
@@ -229,9 +262,9 @@ local function bauenSammeln()
     ns.db.preisQuelle = wert
     ns.aktualisieren()
   end)
-  f.preis:SetPoint("TOPLEFT", 50, -359)
-  f.hinweis = S.absatz(f, B, F.leise)
-  f.hinweis:SetPoint("TOPLEFT", 0, -384)
+  f.preis:SetPoint("TOPLEFT", 60, -416)
+  f.hinweis = S.absatz(f, B, M.leise)
+  f.hinweis:SetPoint("TOPLEFT", 2, -444)
 
   function f:Aktualisieren()
     local st = Z:Stand()
@@ -259,15 +292,21 @@ local function bauenSammeln()
       z.wert:SetText(e.wert and ns.geld(e.wert) or "")
     end, "")
     local g = Z.Summe(ns.db.gesamt.menge)
-    local k = ns.db.gesamt.knoten
-    local gesamt = Z.Text(g, (k.kraut or 0) + (k.erz or 0), k.leder or 0)
-    if g.wert then gesamt = gesamt .. "\n" .. string.format(L.GATHER_WORTH, ns.geld(g.wert)) end
-    self.gesamt:SetText(gesamt)
+    local kn = ns.db.gesamt.knoten
+    local E = ns.Erfolge
+    self.kacheln[1].zahl:SetText(E.Zahl(g.kraut))
+    self.kacheln[2].zahl:SetText(E.Zahl(g.erz + g.rest))
+    self.kacheln[3].zahl:SetText(E.Zahl(g.leder))
+    self.kacheln[4].zahl:SetText(g.wert and ns.geld(g.wert) or "-")
+    self.gesamt:SetText(string.format(L.GATHER_TOTAL_FROM, E.Zahl((kn.kraut or 0) + (kn.erz or 0)), E.Zahl(kn.leder or 0)))
+    self.radar:Setzen(ns.Radar.an)
+    self.taste:Aktualisieren()
+    self.pfeil:Setzen(ns.db.radarPfeil)
+    self.mini:Setzen(ns.db.minikarteStellen)
     self.zaehlen:Setzen(ns.db.zaehlen)
     self.zeigen:Setzen(ns.db.zaehlerZeigen)
     self.leiste:Setzen(ns.db.sammelLeisteZeigen)
     self.stellen:SetText(string.format(L.GATHER_SPOTS_KNOWN, ns.SammelKarte and ns.SammelKarte.Anzahl() or 0))
-    self.route:Setzen(ns.db.route)
     self.preis:Setzen(ns.db.preisQuelle or "auctionator")
     local fehlt = Z.FehlendeQuelle()
     self.hinweis:SetText(fehlt and string.format(L.PRICE_MISSING, fehlt) or "")
@@ -293,7 +332,7 @@ local function abzeichenZeile(z, e)
   z.icon:SetDesaturated(not e.erhalten)
   z.icon:SetAlpha(e.erhalten and 1 or 0.5)
   z.name:SetText(t[1] or e.key)
-  z.name:SetTextColor(rgba(e.erhalten and F.stern or F.leise))
+  z.name:SetTextColor(rgba(e.erhalten and F.stern or M.leise))
   z.text:SetText(t[2] or "")
   if e.erhalten then
     z.rechts:SetText(date("%Y-%m-%d", e.erhalten))
@@ -301,7 +340,7 @@ local function abzeichenZeile(z, e)
     z.fort:Hide()
   else
     z.rechts:SetText(e.ziel > 1 and fortschritt(e) or "")
-    z.rechts:SetTextColor(rgba(F.leise))
+    z.rechts:SetTextColor(rgba(M.leise))
     z.fort:SetShown(e.ziel > 1)
     z.fort:Setzen(math.min(e.wert, e.ziel) / e.ziel)
   end
@@ -329,7 +368,7 @@ local function feld(buch, i)
       GameTooltip:AddLine(string.format(L.BOOK_FOUND, ns.Erfolge.Zahl(e.menge), date("%Y-%m-%d", e.gefunden)),
         F.erfolg[1], F.erfolg[2], F.erfolg[3])
     else
-      GameTooltip:AddLine(L.BOOK_MISSING, F.leise[1], F.leise[2], F.leise[3])
+      GameTooltip:AddLine(L.BOOK_MISSING, M.leise[1], M.leise[2], M.leise[3])
     end
     GameTooltip:Show()
   end)
@@ -380,7 +419,7 @@ local function bauenJournal()
   f.teilen:SetHeight(20)
   f.teilen:SetPoint("TOPRIGHT", 0, 3)
   S.tooltip(f.teilen, L.SHARE_BUTTON, L.SHARE_BUTTON_HELP)
-  f.punkte = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  f.punkte = S.schrift(f, "GameFontHighlightSmall", M.leise)
   f.punkte:SetPoint("RIGHT", f.teilen, "LEFT", -8, 0)
   f.balken = S.balken(f, B, 14, true)
   f.balken:SetPoint("TOPLEFT", 0, -24)
@@ -391,20 +430,20 @@ local function bauenJournal()
   f.freundeFeld:SetSize(B, 14)
   f.freundeFeld:SetPoint("TOPLEFT", 0, -42)
   f.freundeFeld:EnableMouse(true)
-  f.freunde = S.schrift(f.freundeFeld, "GameFontHighlightSmall", F.leise)
+  f.freunde = S.schrift(f.freundeFeld, "GameFontHighlightSmall", M.leise)
   f.freunde:SetPoint("LEFT", 0, 0)
   f.freunde:SetWidth(B)
   f.freunde:SetJustifyH("LEFT")
   f.freunde:SetWordWrap(false)
   f.freundeFeld:SetScript("OnEnter", function(self)
     local liste = ns.Teilen.Freunde()
-    local l = F.leise
+    local l = M.leise
     GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
     GameTooltip:SetText(L.FRIENDS_TITLE, 1, 0.82, 0)
     if #liste == 0 then GameTooltip:AddLine(L.FRIENDS_NONE, l[1], l[2], l[3], true) end
     for _, fr in ipairs(liste) do
       GameTooltip:AddLine(" ")
-      GameTooltip:AddDoubleLine(fr.name, string.format(L.RANK_TITLE, fr.rang, fr.rangName), 1, 1, 1, F.akzent[1], F.akzent[2], F.akzent[3])
+      GameTooltip:AddDoubleLine(fr.name, string.format(L.RANK_TITLE, fr.rang, fr.rangName), 1, 1, 1, M.gold[1], M.gold[2], M.gold[3])
       GameTooltip:AddLine(string.format(L.FRIEND_POINTS, E.Zahl(fr.punkte), fr.serie, fr.serieBest), l[1], l[2], l[3])
       GameTooltip:AddLine(string.format(L.FRIEND_KINDS, fr.arten, fr.abzeichen), l[1], l[2], l[3])
       if (fr.gold or 0) > 0 then GameTooltip:AddLine(string.format(L.FRIEND_GOLD, ns.geld(fr.gold)), l[1], l[2], l[3]) end
@@ -420,11 +459,11 @@ local function bauenJournal()
   f.tag = S.balken(f, 110, 12, true)
   f.tag:SetPoint("TOPLEFT", 0, -82)
   S.tooltip(f.tag, L.JOURNAL_TODAY, L.JOURNAL_GOAL_HELP)
-  f.tagText = S.schrift(f, "GameFontHighlightSmall", F.text)
+  f.tagText = S.schrift(f, "GameFontHighlightSmall", M.text)
   f.tagText:SetPoint("LEFT", f.tag, "RIGHT", 8, 0)
-  f.serie = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  f.serie = S.schrift(f, "GameFontHighlightSmall", M.leise)
   f.serie:SetPoint("TOPLEFT", 0, -100)
-  local ziel = S.schrift(f, "GameFontHighlightSmall", F.leise)
+  local ziel = S.schrift(f, "GameFontHighlightSmall", M.leise)
   ziel:SetPoint("TOPLEFT", 0, -122)
   ziel:SetText(L.JOURNAL_GOAL)
   local optionen = {}
@@ -438,10 +477,10 @@ local function bauenJournal()
   f.rekorde = {}
   for i, art in ipairs({ "gold", "knoten", "wert", "dauer" }) do
     local y = -82 - (i - 1) * 16
-    local name = S.schrift(f, "GameFontHighlightSmall", F.leise)
+    local name = S.schrift(f, "GameFontHighlightSmall", M.leise)
     name:SetPoint("TOPLEFT", rx, y)
     name:SetText(L.RECORDS[art])
-    local wert = S.schrift(f, "GameFontHighlightSmall", F.text)
+    local wert = S.schrift(f, "GameFontHighlightSmall", M.text)
     wert:SetPoint("TOPRIGHT", 0, y)
     f.rekorde[art] = wert
   end
@@ -476,14 +515,14 @@ local function bauenJournal()
     z.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     z.name = S.schrift(z, "GameFontNormal")
     z.name:SetPoint("TOPLEFT", 42, -4)
-    z.text = S.schrift(z, "GameFontHighlightSmall", F.leise)
+    z.text = S.schrift(z, "GameFontHighlightSmall", M.leise)
     z.text:SetPoint("TOPLEFT", 42, -21)
     for _, s in ipairs({ z.name, z.text }) do
       s:SetWidth(B - 160)
       s:SetJustifyH("LEFT")
       s:SetWordWrap(false)
     end
-    z.rechts = S.schrift(z, "GameFontHighlightSmall", F.leise)
+    z.rechts = S.schrift(z, "GameFontHighlightSmall", M.leise)
     z.rechts:SetPoint("TOPRIGHT", -12, -5)
     z.fort = S.balken(z, 96, 6)
     z.fort:SetPoint("BOTTOMRIGHT", -12, 9)
@@ -497,7 +536,7 @@ local function bauenJournal()
       if e.erhalten then
         GameTooltip:AddLine(string.format(L.BADGE_EARNED, date("%Y-%m-%d", e.erhalten)), F.erfolg[1], F.erfolg[2], F.erfolg[3])
       else
-        GameTooltip:AddLine(fortschritt(e), F.leise[1], F.leise[2], F.leise[3])
+        GameTooltip:AddLine(fortschritt(e), M.leise[1], M.leise[2], M.leise[3])
         if e.art == "gold" and not ns.Sammeln.MitPreisen() then
           GameTooltip:AddLine(L.BADGE_NEEDS_PRICES, F.hinweis[1], F.hinweis[2], F.hinweis[3], true)
         end
@@ -530,9 +569,9 @@ local function bauenJournal()
     end
     self.balken:Setzen((st.punkte - st.von) / (st.bis - st.von),
       string.format(L.RANK_TO_NEXT, E.Zahl(st.bis - st.punkte), st.naechster))
-    self.tag:Setzen(st.heute / st.ziel, nil, st.erreicht and F.erfolg or F.akzent)
+    self.tag:Setzen(st.heute / st.ziel, nil, st.erreicht and F.erfolg or M.gold)
     self.tagText:SetText(string.format(L.JOURNAL_TODAY_SHORT, st.heute, st.ziel))
-    self.tagText:SetTextColor(rgba(st.erreicht and F.erfolg or F.text))
+    self.tagText:SetTextColor(rgba(st.erreicht and F.erfolg or M.text))
     self.serie:SetText(E.SerieText(st))
     self.ziel:Setzen(st.ziel)
     local r = ns.db.erfolge.rekord
@@ -628,7 +667,7 @@ local function bauenEinstellungen()
   f.saeulenStil = S.auswahl(f, 104, function()
     local liste = {}
     for _, s in ipairs(ns.Lichtsaeule and ns.Lichtsaeule.STILE or {}) do
-      table.insert(liste, { wert = s.wert, text = L[s.text], farbe = s.wert == ns.db.saeulenStil and F.akzent or F.text })
+      table.insert(liste, { wert = s.wert, text = L[s.text], farbe = s.wert == ns.db.saeulenStil and M.gold or M.text })
     end
     return liste
   end, function(wert)
@@ -677,11 +716,11 @@ end
 local function bauenHilfe()
   local f = seite("hilfe")
   S.ueberschrift(f, L.HELP_TITLE):SetPoint("TOPLEFT", 0, 0)
-  local text = S.absatz(f, B, F.text, "GameFontHighlight")
+  local text = S.absatz(f, B, M.text, "GameFontHighlight")
   text:SetPoint("TOPLEFT", 0, -20)
   text:SetText(L.HELP_TEXT)
   S.ueberschrift(f, L.HELP_COMMANDS):SetPoint("TOPLEFT", 0, -220)
-  local befehle = S.absatz(f, B, F.leise, "GameFontHighlightSmall")
+  local befehle = S.absatz(f, B, M.leise, "GameFontHighlightSmall")
   befehle:SetPoint("TOPLEFT", 0, -240)
   local zeilen = {}
   for _, b in ipairs(ns.BEFEHLE or {}) do
@@ -692,78 +731,74 @@ end
 
 -- Rahmen ---------------------------------------------------------------------------------------
 
-local function bauenEcht(r)
+-- Rahmen im Stil seit 1.3.0 (Patrick, 20. Nov: „modern sieht es so nicht aus ... altbacken“, gewählt
+-- aus zwei Vorschauen): dunkler Grund mit feiner Goldkante, Kopf mit dem runden Symbol und dem Titel
+-- in Gold, Reiter oben als Schrift, der aktive golden mit Goldstrich. Alles selbst gezeichnet.
+local function bauenRahmen(r)
   r:SetSize(BREITE, HOEHE)
-  pcall(r.SetTitle, r, L.ADDON_NAME)
-  -- Im Porträt das eine Symbol von Hop & Seek (Kräuter und Erz, diagonal geteilt). Das Porträt der
-  -- Vorlage selbst bleibt leer, damit nicht noch ein zweites Bild durchscheint. Ohne Porträt der
-  -- Vorlage bleibt das gezeichnete Icon.
-  local halter = type(r.PortraitContainer) == "table" and r.PortraitContainer or r
-  local portrait = halter.portrait or r.portrait
-  if type(portrait) == "table" then
-    if portrait.SetAlpha then portrait:SetAlpha(0) end
-    local deckel = CreateFrame("Frame", nil, halter)
-    deckel:SetAllPoints(portrait)
-    deckel:SetFrameLevel((halter:GetFrameLevel() or 1) + 5)
-    W.symbol = S.symbol(deckel, 58, portrait)
-  elseif r.SetPortraitToAsset then
-    pcall(r.SetPortraitToAsset, r, S.ICON)
-  end
-  local unter = S.schrift(r, "GameFontHighlightSmall")
-  unter:SetPoint("TOPLEFT", 66, -36)
+  S.schatten(r)
+  local kopf = r:CreateTexture(nil, "BORDER")
+  kopf:SetPoint("TOPLEFT", 1, -1)
+  kopf:SetPoint("TOPRIGHT", -1, -1)
+  kopf:SetHeight(KOPF - 1)
+  kopf:SetColorTexture(rgba(M.kopf))
+  local linie = r:CreateTexture(nil, "ARTWORK")
+  linie:SetPoint("TOPLEFT", 1, -KOPF)
+  linie:SetPoint("TOPRIGHT", -1, -KOPF)
+  linie:SetHeight(1)
+  linie:SetColorTexture(rgba(M.linie))
+  -- Das eine Symbol von Hop & Seek (Kräuter und Erz, diagonal geteilt, goldener Ring)
+  local platz = CreateFrame("Frame", nil, r)
+  platz:SetSize(40, 40)
+  platz:SetPoint("TOPLEFT", 12, -9)
+  W.symbol = S.symbol(platz, 40, platz)
+  local titel = S.schrift(r, "GameFontNormalLarge", M.gold)
+  titel:SetPoint("TOPLEFT", 62, -14)
+  titel:SetText(L.ADDON_NAME)
+  local unter = S.schrift(r, "GameFontHighlightSmall", M.leise)
+  unter:SetPoint("TOPLEFT", titel, "BOTTOMLEFT", 0, -4)
   unter:SetText(L.SUBTITLE)
-  local version = S.schrift(r, "GameFontDisableSmall")
-  version:SetPoint("TOPRIGHT", -14, -36)
+  local version = S.schrift(r, "GameFontHighlightSmall", M.leise)
+  version:SetPoint("TOPRIGHT", -40, -16)
   version:SetText(L.BY_AUTHOR .. "   v" .. ns.VERSION)
-  local innen = S.vorlage("Frame", r, "InsetFrameTemplate")
-  if innen then
-    innen:SetFrameLevel((r:GetFrameLevel() or 1) + 1)
-    innen:SetPoint("TOPLEFT", 4, -60)
-    innen:SetPoint("BOTTOMRIGHT", -6, 4)
-  end
-  r.Tabs = {}
-  local vorher
+  local zu = S.zeichenKnopf(r, "x", function() r:Hide() end)
+  zu:SetPoint("TOPRIGHT", -8, -10)
+  -- Reiter oben
+  local strich = r:CreateTexture(nil, "ARTWORK")
+  strich:SetPoint("TOPLEFT", 1, -(KOPF + REITER_H))
+  strich:SetPoint("TOPRIGHT", -1, -(KOPF + REITER_H))
+  strich:SetHeight(1)
+  strich:SetColorTexture(rgba(M.kartenRand))
+  W.reiter = {}
+  local x = 14
   for i, t in ipairs(REITER) do
-    local tab = S.vorlage("Button", r, "PanelTabButtonTemplate", "HopAndSeekFrameTab" .. i)
-    if tab then tab:SetText(t.text) else tab = S.textKnopf(r, t.text, 90, function() end) end
-    if tab.SetID then tab:SetID(i) end
-    if vorher then
-      if tab.LeftActive then tab:SetPoint("TOPLEFT", vorher, "TOPRIGHT", 3, 0) else tab:SetPoint("LEFT", vorher, "RIGHT", -15, 0) end
-    else
-      tab:SetPoint("TOPLEFT", r, "BOTTOMLEFT", 12, 2)
-    end
-    if PanelTemplates_TabResize then pcall(PanelTemplates_TabResize, tab, 0) end
-    tab.schluessel = t.schluessel
-    tab:SetScript("OnClick", function()
+    local b = CreateFrame("Button", nil, r)
+    b.text = S.schrift(b, "GameFontNormal", M.leise)
+    b.text:SetPoint("CENTER", 0, 1)
+    b.text:SetText(t.text)
+    local w = math.max(48, math.floor((b.text:GetStringWidth() or 50) + 16))
+    b:SetSize(w, REITER_H)
+    b:SetPoint("TOPLEFT", x, -KOPF)
+    x = x + w + 8
+    b.strich = b:CreateTexture(nil, "OVERLAY")
+    b.strich:SetPoint("BOTTOMLEFT", 6, 0)
+    b.strich:SetPoint("BOTTOMRIGHT", -6, 0)
+    b.strich:SetHeight(2)
+    b.strich:SetColorTexture(rgba(M.gold))
+    b.strich:Hide()
+    b.schluessel = t.schluessel
+    b:SetScript("OnClick", function()
       if PlaySound and SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_TAB then pcall(PlaySound, SOUNDKIT.IG_CHARACTER_INFO_TAB) end
       W:Zeigen(t.schluessel)
     end)
-    r.Tabs[i] = tab
-    vorher = tab
-  end
-  if PanelTemplates_SetNumTabs then pcall(PanelTemplates_SetNumTabs, r, #REITER) end
-  W.reiter = r.Tabs
-end
-
-local function bauenFlach(r)
-  r:SetSize(BREITE, HOEHE)
-  S.schatten(r)
-  S.kopf(r, L.SUBTITLE)
-  local zu = S.zeichenKnopf(r, "x", function() r:Hide() end)
-  zu:SetPoint("TOPRIGHT", -8, -11)
-  W.reiter = {}
-  for i, t in ipairs(REITER) do
-    local b = S.textKnopf(r, t.text, 86, function() S.klick() W:Zeigen(t.schluessel) end)
-    b:SetPoint("TOPLEFT", r, "BOTTOMLEFT", 10 + (i - 1) * 89, -2)
-    b.schluessel = t.schluessel
+    b:HookScript("OnEnter", function(self) if W.aktiv ~= self.schluessel then self.text:SetTextColor(rgba(M.text)) end end)
+    b:HookScript("OnLeave", function(self) if W.aktiv ~= self.schluessel then self.text:SetTextColor(rgba(M.leise)) end end)
     W.reiter[i] = b
   end
 end
 
 function W:Bauen()
-  local r = S.vorlage("Frame", UIParent, "PortraitFrameTemplate", "HopAndSeekFrame")
-  self.echt = r ~= nil and r.SetTitle ~= nil
-  if not self.echt then r = S.kasten(UIParent, "Frame", F.grund, F.rand, "HopAndSeekFrame") end
+  local r = S.karte(UIParent, "Frame", M.grund, M.goldRand, "HopAndSeekFrame")
   self.rahmen = r
   local pos = ns.db.fenster
   if pos and pos.punkt then r:SetPoint(pos.punkt, UIParent, pos.punkt, pos.x, pos.y) else r:SetPoint("CENTER") end
@@ -780,7 +815,7 @@ function W:Bauen()
     ns.db.fenster = { punkt = punkt, x = x, y = y }
   end)
   if UISpecialFrames then table.insert(UISpecialFrames, "HopAndSeekFrame") end
-  if self.echt then bauenEcht(r) else bauenFlach(r) end
+  bauenRahmen(r)
   bauenStatus()
   bauenSammeln()
   bauenJournal()
@@ -794,8 +829,10 @@ function W:Zeigen(schluessel)
   if not self.rahmen then self:Bauen() end
   self.aktiv = schluessel or self.aktiv or "status"
   for k, f in pairs(self.seiten) do f:SetShown(k == self.aktiv) end
-  for i, b in ipairs(self.reiter) do
-    if self.echt and b.schluessel == self.aktiv and PanelTemplates_SetTab then pcall(PanelTemplates_SetTab, self.rahmen, i) end
+  for _, b in ipairs(self.reiter) do
+    local an = b.schluessel == self.aktiv
+    b.text:SetTextColor(rgba(an and M.gold or M.leise))
+    b.strich:SetShown(an)
   end
   self.rahmen:Show()
   self:Aktualisieren()

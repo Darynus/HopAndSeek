@@ -1,6 +1,6 @@
 -- Lehrer-Finder (Patrick, 13. Nov: „wo finde ich denn den nächsten Lehrer ... Allianz und Horde“).
 -- Für Kräuterkunde, Bergbau und Kürschnern: der nächste Lehrer der eigenen Fraktion (oder ein
--- neutraler) auf diesem Kontinent, mit dem Wegpunkt des Spiels wie beim Wegweiser. Nur Lehrer, die
+-- neutraler) auf diesem Kontinent, mit dem Wegpunkt des Spiels. Nur Lehrer, die
 -- bis Artisan lehren. Die Junior-Lehrer in den Startgebieten lehren nur bis 75 und fehlen deshalb.
 -- Lagen nachgeschlagen bei Warcraft Tavern, „Profession Trainer Locations“ für WoW Forever (13. Nov
 -- 2026), Karten-IDs von Classic. Die neuen Gebiete von Forever (Zephras Isle, Riverglades) fehlen
@@ -130,8 +130,30 @@ function LH.Bedarf()
   return liste[1] and liste[1].art or nil
 end
 
--- Klick, Befehl oder Hinweis im Sammelfenster: Wegpunkt zum nächsten Lehrer. Der Wegweiser zur
--- nächsten Sammelstelle geht dabei aus (es gibt nur einen Wegpunkt).
+-- Wegpunkt des Spiels setzen und verfolgen lassen (Markierung mit Entfernung auf dem Bildschirm).
+-- Bis 1.3.0 im Wegweiser (Wegweiser.lua), den es nicht mehr gibt.
+local function wegpunkt(karte, x, y)
+  if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then
+    ns.melde(L.WAYPOINT_UNSUPPORTED)
+    return false
+  end
+  if C_Map.CanSetUserWaypointOnMap then
+    local ok, kann = pcall(C_Map.CanSetUserWaypointOnMap, karte)
+    if ok and kann == false then
+      ns.melde(L.WAYPOINT_UNSUPPORTED)
+      return false
+    end
+  end
+  local okP, punkt = pcall(UiMapPoint.CreateFromCoordinates, karte, x, y)
+  if not okP or not punkt or not pcall(C_Map.SetUserWaypoint, punkt) then
+    ns.melde(L.WAYPOINT_UNSUPPORTED)
+    return false
+  end
+  if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then pcall(C_SuperTrack.SetSuperTrackedUserWaypoint, true) end
+  return true
+end
+
+-- Klick, Befehl oder Hinweis im Sammelfenster: Wegpunkt zum nächsten Lehrer
 function LH:Zeigen(art)
   art = art or LH.Bedarf()
   if not art then
@@ -140,11 +162,10 @@ function LH:Zeigen(art)
   end
   local z, grund = self:Suchen(art)
   if not z then
-    ns.melde(grund == "ort" and L.NEXT_NO_POSITION or string.format(L.TRAINER_NONE, LH.Name(art)))
+    ns.melde(grund == "ort" and L.NO_POSITION or string.format(L.TRAINER_NONE, LH.Name(art)))
     return false
   end
-  if ns.Wegweiser and ns.Wegweiser.Laeuft() then ns.Wegweiser:Aus(true) end
-  if not ns.Wegweiser.Wegpunkt(z.t[3], z.t[4], z.t[5]) then return false end
+  if not wegpunkt(z.t[3], z.t[4], z.t[5]) then return false end
   local info = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(z.t[3])
   local zone = type(info) == "table" and info.name or "?"
   ns.melde(string.format(L.TRAINER_SET, LH.Name(art), zone, math.floor(z.abstand + 0.5)))
