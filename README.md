@@ -45,6 +45,8 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 - **Time to train**: a reminder when Herbalism, Mining or Skinning needs a trainer, and the level you need for the next rank. Click the hint in the gathering window, use the Status tab or type `/hop trainer`, and the game's marker shows the way to the nearest trainer of your faction.
 - The count of this session sits under the tracking icon, the details are in its tooltip. A new session starts after 30 minutes without gathering, or with Start over, and a line in your chat sums up the last one.
 
+![Count what you gather](images/hopandseek-7-sammeln.png)
+
 ## Find your next node
 
 - **Radar**: your minimap moves to the middle of your screen as a large, see-through radar around your character, with north, east, south and west at its edge. You see the game's own herb and ore dots where you look instead of up in the corner. It turns with you, clicks go through it into the world, and it fades during a fight. Turn it on with the radar button in the gathering window or the Gathered tab, `/hop radar` or your own key, which you set right in the Gathered tab. Your minimap goes back exactly as it was.
@@ -53,6 +55,8 @@ You love hopping through Azeroth and grabbing every herb and every ore vein on t
 - **Names and new spots**: point at a bracket in the radar for its name. Hold Alt over any other dot to see what it is, and Hop & Seek remembers the spot. On your minimap, pointing at a new dot is enough.
 - **Arrow with Alt + click**: hold Alt and click a dot in the radar, and a golden arrow with a dotted line leads you straight there. It goes away when you arrive. The game does not tell add-ons where its dots are, so you pick the node, and the arrow never sends you to an empty spot on its own.
 - **Light pillar**: a beam of light over the herb, ore vein or creature to skin right in front of you, in three looks: a soft Glow, rising Fireflies or a clear Beam. Switch it on in Settings.
+
+![Radar](images/hopandseek-6-radar.png)
 
 ## Make gathering a game
 
